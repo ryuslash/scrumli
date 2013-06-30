@@ -1,0 +1,7 @@
+#!/bin/bash
+
+sbcl --load scrumli.asd \
+    --eval "(asdf:operate 'asdf:load-op \"scrumli\")" \
+    --eval "(scrumli:start-scrumli \
+             :datastore-init '(:connection-spec \
+                               (\"scrumli\" \"slash\" nil \"localhost\")))"
