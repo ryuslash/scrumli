@@ -32,7 +32,6 @@
 
 (defmethod datastore-post-story
     ((datastore pg-datastore) role necessity title content reporter)
-  (format t "~s:~s:~s:~s:~s~%" role necessity title content reporter)
   (with-connection (connection-spec datastore)
     (let ((obj (make-instance
                 'story :role role :necessity necessity :title title

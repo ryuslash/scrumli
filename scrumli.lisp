@@ -75,8 +75,6 @@
             (necessity (hunchentoot:post-parameter "necessity"))
             (title (hunchentoot:post-parameter "headline"))
             (content (hunchentoot:post-parameter "content")))
-        (format t "~s;~s;~s;~s;~s~%" role necessity title content
-                (hunchentoot:session-value :username))
         (post-story role necessity title content
                     (hunchentoot:session-value :username))
         200)
