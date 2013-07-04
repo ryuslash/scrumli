@@ -46,8 +46,10 @@
 (defmethod datastore-get-story ((datastore pg-datastore) id)
   (with-connection (connection-spec datastore)
     (append (query (:select :* :from 'story :where (:= 'id id)) :alist)
-            `((tasks . ,(query (:select :* :from 'task
-                                        :where (:= 'story-id id))
+            `((tasks . ,(query (:order-by
+                                (:select :* :from 'task
+                                         :where (:= 'story-id id))
+                                'priority)
                                :alists))))))
 
 (defmethod datastore-post-story
@@ -74,23 +76,24 @@
                 :assignee "")))
       (save-dao obj))))
 
-(defmethod datastore-story-get-state ((datastore pg-datastore) id)
+(defmethod datastore-story-get-state ((datastore pg-datastore) type id)
   (with-connection (connection-spec datastore)
-    (query (:select 'state :from 'story :where (:= 'id id)) :single)))
+    (query (:select 'state :from type :where (:= 'id id)) :single)))
 
-(defmethod datastore-story-set-state ((datastore pg-datastore) id state)
+(defmethod datastore-story-set-state
+    ((datastore pg-datastore) type id state)
   (with-connection (connection-spec datastore)
-    (execute (:update 'story :set 'state state :where (:= 'id id)))))
+    (execute (:update type :set 'state state :where (:= 'id id)))))
 
 (defmethod datastore-story-change-priority
-    ((datastore pg-datastore) id dir)
+    ((datastore pg-datastore) type id dir)
   (with-connection (connection-spec datastore)
-    (let* ((current-priority (query (:select 'priority :from 'story
+    (let* ((current-priority (query (:select 'priority :from type
                                              :where (:= 'id id))
                                     :single))
            (next-priority (funcall (ecase dir (:up #'-) (:down #'+))
                                    current-priority 1)))
-      (execute (:update 'story :set 'priority current-priority
+      (execute (:update type :set 'priority current-priority
                         :where (:= 'priority next-priority)))
-      (execute (:update 'story :set 'priority next-priority
+      (execute (:update type :set 'priority next-priority
                         :where (:= 'id id))))))

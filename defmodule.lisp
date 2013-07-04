@@ -21,13 +21,13 @@
   (define-method post-task (story-id description reporter)
     "Post a new task for a story.")
 
-  (define-method story-get-state (id)
+  (define-method story-get-state (type id)
     "Get the state of a story.")
 
-  (define-method story-set-state (id state)
+  (define-method story-set-state (type id state)
     "Set the state of a story.")
 
-  (define-method story-change-priority (id dir)
+  (define-method story-change-priority (type id dir)
     "Change the priority of a story in direction DIR."))
 
 (restas:define-module #:scrumli

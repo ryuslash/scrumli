@@ -9,17 +9,44 @@ var StateIcon = React.createClass({
 });
 
 var StoryTaskRow = React.createClass({
+    changeState: React.autoBind(function(event) {
+        $.ajax({
+            url: "/tasks/state",
+            type: "POST",
+            data: {'id': this.props.task.id},
+            dataType: 'json',
+            mimeType: 'textPlain'
+        });
+    }),
+    moveUp: React.autoBind(function(event) {
+        $.ajax({
+            url: "tasks/up",
+            type: "POST",
+            data: {'id': this.props.task.id},
+            dataType: 'json',
+            mimeType: 'textPlain'
+        });
+    }),
+    moveDown: React.autoBind(function(event) {
+        $.ajax({
+            url: "tasks/down",
+            type: "POST",
+            data: {'id': this.props.task.id},
+            dataType: 'json',
+            mimeType: 'textPlain'
+        });
+    }),
     render: function() {
         var state = " " + this.props.task.state;
 
         return (
             <tr>
               <td class="span1">
-                <i class="icon-arrow-up"></i>
-                <i class="icon-arrow-down"></i>
+                <i class="icon-arrow-up" onClick={this.moveUp}></i>
+                <i class="icon-arrow-down" onClick={this.moveDown}></i>
               </td>
               <td class="span2">
-                <span>
+                <span onClick={this.changeState}>
                   <StateIcon state={this.props.task.state} />
                   {state}
                 </span>
