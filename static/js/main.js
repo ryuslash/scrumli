@@ -64,7 +64,8 @@ var StoryTaskTable = React.createClass({
     render: function() {
         var taskNodes = this.props.tasks.map(function (task) {
             return <StoryTaskRow task={task} />;
-        });
+        }.bind(this));
+
         return (
             <table class="table table-striped">
               {taskNodes}
@@ -111,11 +112,16 @@ var StoryData = React.createClass({
         });
     }),
     render: function() {
+        var taskTable = null;
+
+        if (this.props.data.tasks)
+            taskTable = <StoryTaskTable tasks={this.props.data.tasks} />;
+
         if (this.props.data) {
             return (<div>
                     Assignee: {this.props.data.assignee}
                     <pre>{this.props.data.content}</pre>
-                    <StoryTaskTable tasks={this.props.data.tasks} />
+                    {taskTable}
                     <StoryTaskForm onTaskSubmit={this.handleTaskSubmit} />
                     </div>);
         }
