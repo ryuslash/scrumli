@@ -103,8 +103,10 @@ var StoryTaskForm = React.createClass({
 
 var StoryData = React.createClass({
     handleTaskSubmit: React.autoBind(function (task) {
+        task.storyId = this.props.data.id;
+
         $.ajax({
-            url: "/stories/" + this.props.data.id + "/tasks/new",
+            url: "/stories/tasks/new",
             type: "POST",
             data: task,
             dataType: 'json',
