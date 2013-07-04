@@ -8,12 +8,88 @@ var StateIcon = React.createClass({
     }
 });
 
+var StoryTaskRow = React.createClass({
+    render: function() {
+        var state = " " + this.props.task.state;
+
+        return (
+            <tr>
+              <td class="span1">
+                <i class="icon-arrow-up"></i>
+                <i class="icon-arrow-down"></i>
+              </td>
+              <td class="span2">
+                <span>
+                  <StateIcon state={this.props.task.state} />
+                  {state}
+                </span>
+              </td>
+              <td>
+                {this.props.task.description}
+              </td>
+            </tr>
+        );
+
+    }
+});
+
+var StoryTaskTable = React.createClass({
+    render: function() {
+        var taskNodes = this.props.tasks.map(function (task) {
+            return <StoryTaskRow task={task} />;
+        });
+        return (
+            <table class="table table-striped">
+              {taskNodes}
+            </table>
+        );
+    }
+});
+
+var StoryTaskForm = React.createClass({
+    handleSubmit: React.autoBind(function() {
+        var text = this.refs.text.getDOMNode().value.trim();
+
+        this.props.onTaskSubmit({description: text});
+
+        this.refs.text.getDOMNode().value = '';
+
+        return false;
+    }),
+    render: function() {
+        return (
+            <form onSubmit={this.handleSubmit}>
+              <fieldset>
+                <legend>New task</legend>
+                <div class="input-append">
+                  <input type="text" ref="text" class="input-medium" />
+                  <button type="submit" class="btn btn-primary">
+                    Send
+                  </button>
+                </div>
+              </fieldset>
+            </form>
+        );
+    }
+});
+
 var StoryData = React.createClass({
+    handleTaskSubmit: React.autoBind(function (task) {
+        $.ajax({
+            url: "/stories/" + this.props.data.id + "/tasks/new",
+            type: "POST",
+            data: task,
+            dataType: 'json',
+            mimeType: 'textPlain'
+        });
+    }),
     render: function() {
         if (this.props.data) {
             return (<div>
                     Assignee: {this.props.data.assignee}
                     <pre>{this.props.data.content}</pre>
+                    <StoryTaskTable tasks={this.props.data.tasks} />
+                    <StoryTaskForm onTaskSubmit={this.handleTaskSubmit} />
                     </div>);
         }
 

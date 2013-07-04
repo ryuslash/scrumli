@@ -12,8 +12,14 @@
   (define-method get-story (id)
     "Get a story from the datastore.")
 
+  (define-method get-tasks-for-story (id)
+    "Get the tasks associated with a story.")
+
   (define-method post-story (role necessity title content reporter)
     "Post a new story.")
+
+  (define-method post-task (story-id description reporter)
+    "Post a new task for a story.")
 
   (define-method story-get-state (id)
     "Get the state of a story.")

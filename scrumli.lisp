@@ -80,6 +80,13 @@
         200)
       403))
 
+(define-route tasks-new ("stories/:id/tasks/new" :method :post)
+  (if (logged-in-p)
+      (let ((description (hunchentoot:post-parameter "description")))
+        (post-task id description (hunchentoot:session-value :username))
+        200)
+      403))
+
 (define-route stories-state ("stories/state" :method :post)
   (if (logged-in-p)
       (let* ((id (hunchentoot:post-parameter "id"))
