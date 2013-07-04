@@ -109,11 +109,11 @@ var StoryRow = React.createClass({
 
         return (
             <tr>
-              <td>
+              <td class="span1">
                 <i class="icon-arrow-up" onClick={this.moveUp}></i>
                 <i class="icon-arrow-down" onClick={this.moveDown}></i>
               </td>
-              <td>
+              <td class="span2">
                 <span onClick={this.changeState}>
                   <StateIcon state={this.state.state} />
                   {state}
@@ -255,7 +255,8 @@ var StoryForm = React.createClass({
                     <span class="add-on"> to </span>
                     <input type="text" class="input-xxlarge"
                            ref="headline" placeholder="fill in this form..." />
-                    <button class="btn" type="submit">!</button><br />
+                    <button class="btn btn-primary" type="submit">!</button>
+                    <br />
                     <textarea ref="content"></textarea>
                   </div>
                 </div>
