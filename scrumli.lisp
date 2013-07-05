@@ -30,10 +30,13 @@
 (defun logged-in-p ()
   (hunchentoot:session-value :username))
 
+(defun page-title (title)
+  (<:title (concatenate 'string title " | scrumli")))
+
 (define-route main ("")
   (if (logged-in-p)
       (<:html
-       (<:head (<:title "Hello!")
+       (<:head (page-title "Backlog")
                (<:link :href *scrumelo-bootstrap-css-location*
                        :rel "stylesheet" :type "text/css")
                (<:link :href *scrumelo-font-awesome-css-location*
@@ -47,8 +50,18 @@
                (<:script :type "text/javascript"
                          :src *scrumelo-jsxtransformer-js-location*))
        (<:body
-        (<:a :href "/logout" "Logout") " "
-        (hunchentoot:session-value :username)
+        (<:div :class "navbar navbar-static-top navbar-inverse"
+               (<:div :class "navbar-inner"
+                      (<:div :class "container"
+                             (<:a :class "brand" "scrumli")
+                             (<:div :class "pull-right"
+                                    (<:span :class "navbar-text"
+                                            (hunchentoot:session-value
+                                             :username))
+                                    (<:ul :class "nav pull-right"
+                                          (<:li :class "divider-vertical")
+                                          (<:li (<:a :href "/logout"
+                                                     "Logout")))))))
         (<:div :class "container"
                (<:h1 "Backlog")
                (<:div :id "content")
@@ -128,14 +141,34 @@
   (if (not (logged-in-p))
       (<:html :lang "en"
               (<:head (<:meta :charset "utf-8")
-                      (<:title "Login")
+                      (page-title "Login")
+                      (<:link :href *scrumelo-bootstrap-css-location*
+                              :rel "stylesheet" :type "text/css")
+                      (<:script :type "text/javascript"
+                                :src *scrumelo-bootstrap-js-location*)
                       (<:script :src "https://login.persona.org/include.js")
                       (<:script :src "/js/login.js"))
               (<:body
+               (<:div :class "navbar navbar-static-top navbar-inverse"
+                      (<:div :class "navbar-inner"
+                             (<:div :class "container"
+                                    (<:a :class "brand" "scrumli")
+                                    (<:ul :class "nav pull-right"
+                                          (<:li (<:a :href "javascript:login()"
+                                                     "Login"))))))
+               (<:div :class "container"
+                      (<:br)
+                      (<:div :class "hero-unit"
+                             (<:h1 "Scrumli")
+                             (<:p "As a " (<:em "developer") " I "
+                                  (<:em "love") " to " (<:em "scrum")
+                                  "...")
+                             (<:a :class "btn btn-primary btn-large"
+                                  :href "javascript:login()"
+                                  "Login")))
                (<:form :id "login-form" :method "POST" :action ""
                        (<:input :id "assertion-field" :type "hidden"
-                                :name "assertion" :value ""))
-               (<:p (<:a :href "javascript:login()" "Login"))))
+                                :name "assertion" :value ""))))
       (redirect 'main)))
 
 (define-route logout-page ("logout")
