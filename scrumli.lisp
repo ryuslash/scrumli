@@ -3,27 +3,27 @@
 (defvar *scrumli-host* "http://localhost:8080"
   "The host currently running Scrumli. Used by Mozilla Persona.")
 
-(defvar *scrumelo-bootstrap-css-location*
+(defvar *scrumli-bootstrap-css-location*
   "http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css"
   "The location of the twitter bootstrap CSS file.")
 
-(defvar *scrumelo-bootstrap-js-location*
+(defvar *scrumli-bootstrap-js-location*
   "http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"
   "The location of the twitter bootstrap JS file.")
 
-(defvar *scrumelo-font-awesome-css-location*
+(defvar *scrumli-font-awesome-css-location*
   "http://netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.min.css"
   "The location of the font awesome CSS file.")
 
-(defvar *scrumelo-jquery-js-location*
+(defvar *scrumli-jquery-js-location*
   "http://code.jquery.com/jquery-2.0.0.min.js"
   "The location of the jQuery JS file.")
 
-(defvar *scrumelo-react-js-location*
+(defvar *scrumli-react-js-location*
   "http://cdnjs.cloudflare.com/ajax/libs/react/0.3.2/react.min.js"
   "The location of the React JS file.")
 
-(defvar *scrumelo-jsxtransformer-js-location*
+(defvar *scrumli-jsxtransformer-js-location*
   "http://cdnjs.cloudflare.com/ajax/libs/react/0.3.2/JSXTransformer.js"
   "The location of the JSX Transformer JS file.")
 
@@ -33,48 +33,56 @@
 (defun page-title (title)
   (<:title (concatenate 'string title " | scrumli")))
 
+(defun css (&rest sheets)
+  (apply 'concatenate 'string
+         (mapcar (lambda (s)
+                   (<:link :href s :rel "stylesheet" :type "text/css"))
+                 sheets)))
+
+(defun js (&rest scripts)
+  (apply 'concatenate 'string
+         (mapcar (lambda (s)
+                   (<:script :type "text/javascript" :src s))
+                 scripts)))
+
+(defmacro navbar (&body body)
+  `(<:div :class "navbar navbar-static-top navbar-inverse"
+          (<:div :class "navbar-inner"
+                 (<:div :class "container"
+                        (<:a :class "brand" "scrumli")
+                        ,@body))))
+
 (define-route main ("")
   (if (logged-in-p)
       (<:html
        (<:head (page-title "Backlog")
-               (<:link :href *scrumelo-bootstrap-css-location*
-                       :rel "stylesheet" :type "text/css")
-               (<:link :href *scrumelo-font-awesome-css-location*
-                       :rel "stylesheet" :type "text/css")
-               (<:script :type "text/javascript"
-                         :src *scrumelo-bootstrap-js-location*)
-               (<:script :type "text/javascript"
-                         :src *scrumelo-jquery-js-location*)
-               (<:script :type "text/javascript"
-                         :src *scrumelo-react-js-location*)
-               (<:script :type "text/javascript"
-                         :src *scrumelo-jsxtransformer-js-location*))
+               (css *scrumli-bootstrap-css-location*
+                    *scrumli-font-awesome-css-location*)
+               (js *scrumli-bootstrap-js-location*
+                   *scrumli-jquery-js-location*
+                   *scrumli-react-js-location*
+                   *scrumli-jsxtransformer-js-location*))
        (<:body
-        (<:div :class "navbar navbar-static-top navbar-inverse"
-               (<:div :class "navbar-inner"
-                      (<:div :class "container"
-                             (<:a :class "brand" "scrumli")
-                             (<:div :class "pull-right"
-                                    (<:span :class "navbar-text"
-                                            (hunchentoot:session-value
-                                             :username))
-                                    (<:ul :class "nav pull-right"
-                                          (<:li :class "divider-vertical")
-                                          (<:li (<:a :href "/logout"
-                                                     "Logout")))))))
+        (navbar (<:div :class "pull-right"
+                       (<:span :class "navbar-text"
+                               (hunchentoot:session-value :username))
+                       (<:ul :class "nav pull-right"
+                             (<:li :class "divider-vertical")
+                             (<:li (<:a :href (genurl 'logout-page)
+                                        "Logout"))
+                             (<:li :class "divider-vertical"))))
         (<:div :class "container"
                (<:h1 "Backlog")
                (<:div :id "content")
-               (<:script :type "text/jsx" :src "js/main.js"))))
+               (<:script :type "text/jsx" :src (genurl 'main-js)))))
       (redirect 'login-page)))
 
-(define-route react-ui ("js/main.js"
-                        :content-type "application/ecmascript")
-  (merge-pathnames "js/main.js" *static-directory*))
+(defmacro serve-static (name relpath)
+  `(define-route ,name (,relpath :content-type "application/ecmascript")
+     (merge-pathnames ,relpath *static-directory*)))
 
-(define-route login-js ("js/login.js"
-                        :content-type "application/ecmascript")
-  (merge-pathnames "js/login.js" *static-directory*))
+(serve-static main-js "js/main.js")
+(serve-static login-js "js/login.js")
 
 (define-route stories-json ("stories" :content-type "text/json")
   (if (logged-in-p)
@@ -82,22 +90,26 @@
         (encode-json (get-all-stories) out))
       403))
 
+(defmacro with-post-parameters (parameters &body body)
+  `(let ,(mapcar (lambda (p)
+                   (list (intern (string-upcase p))
+                         `(hunchentoot:post-parameter ,p)))
+                 parameters)
+     ,@body))
+
 (define-route stories-new ("stories/new" :method :post)
   (if (logged-in-p)
-      (let ((role (hunchentoot:post-parameter "role"))
-            (necessity (hunchentoot:post-parameter "necessity"))
-            (title (hunchentoot:post-parameter "headline"))
-            (content (hunchentoot:post-parameter "content")))
-        (post-story role necessity title content
+      (with-post-parameters ("role" "necessity" "headline" "content")
+        (post-story role necessity headline content
                     (hunchentoot:session-value :username))
         200)
       403))
 
 (define-route tasks-new ("stories/tasks/new" :method :post)
   (if (logged-in-p)
-      (let ((id (hunchentoot:post-parameter "storyId"))
-            (description (hunchentoot:post-parameter "description")))
-        (post-task id description (hunchentoot:session-value :username))
+      (with-post-parameters ("storyId" "description")
+        (post-task storyid description
+                   (hunchentoot:session-value :username))
         200)
       403))
 
@@ -142,20 +154,16 @@
       (<:html :lang "en"
               (<:head (<:meta :charset "utf-8")
                       (page-title "Login")
-                      (<:link :href *scrumelo-bootstrap-css-location*
-                              :rel "stylesheet" :type "text/css")
-                      (<:script :type "text/javascript"
-                                :src *scrumelo-bootstrap-js-location*)
-                      (<:script :src "https://login.persona.org/include.js")
-                      (<:script :src "/js/login.js"))
+                      (css *scrumli-bootstrap-css-location*)
+                      (js *scrumli-bootstrap-js-location*
+                          "https://login.persona.org/include.js"
+                          (genurl 'login-js)))
               (<:body
-               (<:div :class "navbar navbar-static-top navbar-inverse"
-                      (<:div :class "navbar-inner"
-                             (<:div :class "container"
-                                    (<:a :class "brand" "scrumli")
-                                    (<:ul :class "nav pull-right"
-                                          (<:li (<:a :href "javascript:login()"
-                                                     "Login"))))))
+               (navbar (<:ul :class "nav pull-right"
+                             (<:li :class "divider-vertical")
+                             (<:li (<:a :href "javascript:login()"
+                                        "Login"))
+                             (<:li :class "divider-vertical")))
                (<:div :class "container"
                       (<:br)
                       (<:div :class "hero-unit"
@@ -173,8 +181,7 @@
 
 (define-route logout-page ("logout")
   (if (logged-in-p)
-      (progn
-        (setf (hunchentoot:session-value :username) nil)))
+      (setf (hunchentoot:session-value :username) nil))
   (redirect 'login-page))
 
 (defun json-to-string (obj)
@@ -203,7 +210,7 @@
           (redirect 'main))
         403)))
 
-(define-route scrumelo-story ("stories/:id")
+(define-route scrumli-story ("stories/:id")
   (if (logged-in-p)
       (with-output-to-string (out)
         (encode-json (get-story id) out))
