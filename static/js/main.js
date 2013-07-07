@@ -15,9 +15,16 @@ var StoryTaskRow = React.createClass({
             type: "POST",
             data: {'id': this.props.task.id},
             dataType: 'json',
-            mimeType: 'textPlain'
+            mimeType: 'textPlain',
+            success: function (data, textStatus, jqXHR) {
+                if (data.status == "ok")
+                    this.setState({state: data.state});
+            }.bind(this)
         });
     }),
+    getInitialState: function () {
+        return {state: this.props.task.state};
+    },
     moveUp: React.autoBind(function(event) {
         $.ajax({
             url: "tasks/up",
@@ -37,8 +44,6 @@ var StoryTaskRow = React.createClass({
         });
     }),
     render: function() {
-        var state = " " + this.props.task.state;
-
         return (
             <tr>
               <td class="span1">
@@ -47,8 +52,8 @@ var StoryTaskRow = React.createClass({
               </td>
               <td class="span2">
                 <span onClick={this.changeState}>
-                  <StateIcon state={this.props.task.state} />
-                  {state}
+                  <StateIcon state={this.state.state} /> {" "}
+                  {this.state.state}
                 </span>
               </td>
               <td>
@@ -134,9 +139,6 @@ var StoryData = React.createClass({
 
 var StoryRow = React.createClass({
     render: function() {
-        // A little ugly to get a space, but I don't know of any other
-        // way.
-        var state = " " + this.state.state;
         var sdata = null;
 
         if (this.state.content)
@@ -150,8 +152,8 @@ var StoryRow = React.createClass({
               </td>
               <td class="span2">
                 <span onClick={this.changeState}>
-                  <StateIcon state={this.state.state} />
-                  {state}
+                  <StateIcon state={this.state.state} /> {" "}
+                  {this.state.state}
                 </span>
               </td>
               <td>
@@ -189,8 +191,9 @@ var StoryRow = React.createClass({
             data: {'id': this.props.story.id},
             dataType: 'json',
             mimeType: 'textPlain',
-            success: function(data) {
-                this.setState({state: eval(data).state});
+            success: function(data, textStatus, jqXHR) {
+                if (data.status == "ok")
+                    this.setState({state: data.state});
             }.bind(this)
         });
     }),
@@ -201,8 +204,9 @@ var StoryRow = React.createClass({
             data: {'id': this.props.story.id},
             dataType: 'json',
             mimeType: 'textPlain',
-            success: function (data) {
-                this.props.onMoved(1);
+            success: function (data, textStatus, jqXHR) {
+                if (data.status == "ok")
+                    this.props.onMoved(1);
             }.bind(this)
         });
     }),
@@ -222,7 +226,7 @@ var StoryRow = React.createClass({
 
 var StoryTable = React.createClass({
     handleMoved: React.autoBind(function(direction) {
-        this.loadStoriesFromServer();
+        this.props.onStoryMoved(direction);
     }),
     render: function() {
         var storyNodes = this.props.data.map(function (story) {
@@ -302,6 +306,9 @@ var StoryPage = React.createClass({
             this.props.pollInterval
         );
     },
+    handleStoryMoved: React.autoBind(function (direction) {
+        this.loadStoriesFromServer();
+    }),
     handleStorySubmit: React.autoBind(function (story) {
         $.ajax({
             url: "/stories/new",
@@ -321,7 +328,7 @@ var StoryPage = React.createClass({
     render: function() {
         return (
             <div>
-              <StoryTable data={this.state.data} />
+              <StoryTable data={this.state.data} onStoryMoved={this.handleStoryMoved} />
               <StoryForm onStorySubmit={this.handleStorySubmit} />
             </div>
         );
