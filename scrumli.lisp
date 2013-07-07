@@ -97,12 +97,14 @@
                  parameters)
      ,@body))
 
-(define-route stories-new ("stories/new" :method :post)
+(define-route stories-new ("stories/new" :method :post
+                                         :content-type "text/json")
   (if (logged-in-p)
       (with-post-parameters ("role" "necessity" "headline" "content")
         (post-story role necessity headline content
                     (hunchentoot:session-value :username))
-        200)
+        (with-output-to-string (out)
+          (encode-json '((status . "ok")) out)))
       403))
 
 (define-route tasks-new ("stories/tasks/new" :method :post)

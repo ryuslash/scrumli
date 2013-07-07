@@ -221,30 +221,11 @@ var StoryRow = React.createClass({
 });
 
 var StoryTable = React.createClass({
-    loadStoriesFromServer: function() {
-        $.ajax({
-            url: this.props.url,
-            mimeType: 'textPlain',
-            success: function(data) {
-                this.setState({data: eval(data)});
-            }.bind(this)
-        });
-    },
-    getInitialState: function() {
-        return {data: []};
-    },
-    componentWillMount: function() {
-        this.loadStoriesFromServer();
-        setInterval(
-            this.loadStoriesFromServer.bind(this),
-            this.props.pollInterval
-        );
-    },
     handleMoved: React.autoBind(function(direction) {
         this.loadStoriesFromServer();
     }),
     render: function() {
-        var storyNodes = this.state.data.map(function (story) {
+        var storyNodes = this.props.data.map(function (story) {
             return <StoryRow story={story} onMoved={this.handleMoved} />;
         }.bind(this));
         return (
@@ -302,19 +283,45 @@ var StoryForm = React.createClass({
 });
 
 var StoryPage = React.createClass({
+    loadStoriesFromServer: function() {
+        $.ajax({
+            url: this.props.url,
+            mimeType: 'textPlain',
+            success: function(data) {
+                this.setState({data: eval(data)});
+            }.bind(this)
+        });
+    },
+    getInitialState: function() {
+        return {data: []};
+    },
+    componentWillMount: function() {
+        this.loadStoriesFromServer();
+        setInterval(
+            this.loadStoriesFromServer.bind(this),
+            this.props.pollInterval
+        );
+    },
     handleStorySubmit: React.autoBind(function (story) {
         $.ajax({
             url: "/stories/new",
             type: "POST",
             data: story,
             dataType: 'json',
-            mimeType: 'textPlain'
+            mimeType: 'textPlain',
+            success: function (data, textStatus, jqXHR) {
+                if (data.status == "ok")
+                    this.loadStoriesFromServer();
+            }.bind(this),
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert("error: " + errorThrown);
+            }.bind(this)
         });
     }),
     render: function() {
         return (
             <div>
-              <StoryTable url="/stories" pollInterval={5000} />
+              <StoryTable data={this.state.data} />
               <StoryForm onStorySubmit={this.handleStorySubmit} />
             </div>
         );
@@ -322,6 +329,6 @@ var StoryPage = React.createClass({
 });
 
 React.renderComponent(
-    <StoryPage />,
+    <StoryPage url="/stories" pollInterval={5000} />,
     document.getElementById('content')
 );
