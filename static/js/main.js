@@ -37,11 +37,13 @@ var StoryTaskRow = React.createClass({
         return (
             <tr>
               <td class="span1">
-                <i class="icon-arrow-up" onClick={this.moveUp}></i>
-                <i class="icon-arrow-down" onClick={this.moveDown}></i>
+                <i class="icon-arrow-up clickable"
+                   onClick={this.moveUp}></i>
+                <i class="icon-arrow-down clickable"
+                   onClick={this.moveDown}></i>
               </td>
               <td class="span2">
-                <span onClick={this.changeState}>
+                <span onClick={this.changeState} class="clickable">
                   <StateIcon state={this.state.state} /> {" "}
                   {this.state.state}
                 </span>
@@ -149,17 +151,19 @@ var StoryRow = React.createClass({
         return (
             <tr>
               <td class="span1">
-                <i class="icon-arrow-up" onClick={this.moveUp}></i>
-                <i class="icon-arrow-down" onClick={this.moveDown}></i>
+                <i class="icon-arrow-up clickable"
+                   onClick={this.moveUp}></i>
+                <i class="icon-arrow-down clickable"
+                   onClick={this.moveDown}></i>
               </td>
               <td class="span2">
-                <span onClick={this.changeState}>
+                <span onClick={this.changeState} class="clickable">
                   <StateIcon state={this.state.state} /> {" "}
                   {this.state.state}
                 </span>
               </td>
               <td>
-                <a onClick={this.handleClick}>
+                <a onClick={this.handleClick} class="clickable">
                   As a {this.props.story.role}, I
                   {this.props.story.necessity} to
                   {this.props.story.title}

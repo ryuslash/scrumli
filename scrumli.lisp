@@ -57,7 +57,8 @@
       (<:html
        (<:head (page-title "Backlog")
                (css *scrumli-bootstrap-css-location*
-                    *scrumli-font-awesome-css-location*)
+                    *scrumli-font-awesome-css-location*
+                    (genurl 'scrumli-css))
                (js *scrumli-bootstrap-js-location*
                    *scrumli-jquery-js-location*
                    *scrumli-react-js-location*
@@ -83,6 +84,7 @@
 
 (serve-static main-js "js/main.js")
 (serve-static login-js "js/login.js")
+(serve-static scrumli-css "css/scrumli.css")
 
 (define-route stories-json ("stories" :content-type "text/json")
   (if (logged-in-p)
