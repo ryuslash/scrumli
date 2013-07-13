@@ -105,12 +105,13 @@
         (encode-json-to-string '((status . "ok"))))
       403))
 
-(define-route tasks-new ("stories/tasks/new" :method :post)
+(define-route tasks-new ("stories/tasks/new" :method :post
+                                             :content-type "text/json")
   (if (logged-in-p)
       (with-post-parameters ("storyId" "description")
         (post-task storyid description
                    (hunchentoot:session-value :username))
-        200)
+        (encode-json-to-string '((status . "ok"))))
       403))
 
 (define-route stories-state ("stories/state" :method :post
@@ -148,12 +149,13 @@
         (encode-json-to-string '((status . "ok"))))
       403))
 
-(define-route task-priority ("tasks/:dir" :method :post)
+(define-route task-priority ("tasks/:dir" :method :post
+                                          :content-type "text/json")
   (if (logged-in-p)
       (let* ((id (hunchentoot:post-parameter "id")))
         (story-change-priority
          'task id (intern (string-upcase dir) :keyword))
-        200)
+        (encode-json-to-string '((status . "ok"))))
       403))
 
 (define-route login-page ("login")
@@ -216,4 +218,10 @@
 (define-route scrumli-story ("stories/:id" :content-type "json")
   (if (logged-in-p)
       (encode-json-to-string (get-story id))
+      403))
+
+(define-route scrumli-story-tasks ("stories/:id/tasks"
+                                   :content-type "json")
+  (if (logged-in-p)
+      (encode-json-to-string (get-tasks-for-story id))
       403))

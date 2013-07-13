@@ -20,10 +20,18 @@ var StoryTaskRow = React.createClass({
         return {state: this.props.task.state};
     },
     moveUp: React.autoBind(function(event) {
-        $.post("/tasks/up", {'id': this.props.task.id});
+        $.post("/tasks/up", {'id': this.props.task.id})
+            .done(function (data) {
+                if (data.status == "ok")
+                    this.props.onMoved(1);
+            }.bind(this));
     }),
     moveDown: React.autoBind(function(event) {
-        $.post("/tasks/down", {'id': this.props.task.id});
+        $.post("/tasks/down", {'id': this.props.task.id})
+            .done(function (data) {
+                if (data.status == "ok")
+                    this.props.onMoved(-1);
+            }.bind(this));
     }),
     render: function() {
         return (
@@ -50,7 +58,8 @@ var StoryTaskRow = React.createClass({
 var StoryTaskTable = React.createClass({
     render: function() {
         var taskNodes = this.props.tasks.map(function (task) {
-            return <StoryTaskRow task={task} />;
+            return <StoryTaskRow task={task}
+                                 onMoved={this.props.onTaskMoved} />;
         }.bind(this));
 
         return (
@@ -91,14 +100,32 @@ var StoryTaskForm = React.createClass({
 var StoryData = React.createClass({
     handleTaskSubmit: React.autoBind(function (task) {
         task.storyId = this.state.data.id;
-        $.post("/stories/tasks/new", task);
+        $.post("/stories/tasks/new", task)
+            .done(function(data) {
+                if (data.status == "ok")
+                    this.loadStoryFromServer();
+            }.bind(this));
     }),
+    loadStoryFromServer: function() {
+        $.get("/stories/" + this.state.data.id)
+            .done(this.setData.bind(this));
+    },
+    componentWillMount: function() {
+        setInterval(
+            this.loadStoryFromServer.bind(this),
+            this.props.pollInterval
+        );
+    },
     getInitialState: function() {
         return {data: null};
     },
     setData: function(data) {
+        this.setState({data: null});
         this.setState({data: data});
     },
+    handleTaskMoved: React.autoBind(function(direction) {
+        this.loadStoryFromServer();
+    }),
     render: function() {
         if (this.state.data) {
             return (<div>
@@ -107,7 +134,8 @@ var StoryData = React.createClass({
                       <div class="well">
                         {this.state.data.content}
                       </div>
-                      <StoryTaskTable tasks={this.state.data.tasks || []} />
+                      <StoryTaskTable tasks={this.state.data.tasks || []}
+                                      onTaskMoved={this.handleTaskMoved} />
                       <StoryTaskForm onTaskSubmit={this.handleTaskSubmit} />
                     </div>);
         }
@@ -283,7 +311,8 @@ var StoryPage = React.createClass({
                 <StoryForm onStorySubmit={this.handleStorySubmit} />
               </div>
               <div class="span6">
-                <StoryData ref="data" />
+                <StoryData ref="data"
+                           pollInterval={this.props.pollInterval} />
               </div>
             </div>
         );

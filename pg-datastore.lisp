@@ -46,11 +46,13 @@
 (defmethod datastore-get-story ((datastore pg-datastore) id)
   (with-connection (connection-spec datastore)
     (append (query (:select :* :from 'story :where (:= 'id id)) :alist)
-            `((tasks . ,(query (:order-by
-                                (:select :* :from 'task
-                                         :where (:= 'story-id id))
-                                'priority)
-                               :alists))))))
+            `((tasks . ,(datastore-get-tasks-for-story datastore id))))))
+
+(defmethod datastore-get-tasks-for-story ((datastore pg-datastore) id)
+  (with-connection (connection-spec datastore)
+    (query (:order-by (:select :* :from 'task :where (:= 'story-id id))
+                      'priority)
+           :alists)))
 
 (defmethod datastore-post-story
     ((datastore pg-datastore) role necessity title content reporter)
