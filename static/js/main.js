@@ -10,38 +10,20 @@ var StateIcon = React.createClass({
 
 var StoryTaskRow = React.createClass({
     changeState: React.autoBind(function(event) {
-        $.ajax({
-            url: "/tasks/state",
-            type: "POST",
-            data: {'id': this.props.task.id},
-            dataType: 'json',
-            mimeType: 'textPlain',
-            success: function (data, textStatus, jqXHR) {
+        $.post("/tasks/state", {'id': this.props.task.id})
+            .done(function (data, textStatus, jqXHR) {
                 if (data.status == "ok")
                     this.setState({state: data.state});
-            }.bind(this)
-        });
+            }.bind(this));
     }),
     getInitialState: function () {
         return {state: this.props.task.state};
     },
     moveUp: React.autoBind(function(event) {
-        $.ajax({
-            url: "tasks/up",
-            type: "POST",
-            data: {'id': this.props.task.id},
-            dataType: 'json',
-            mimeType: 'textPlain'
-        });
+        $.post("/tasks/up", {'id': this.props.task.id});
     }),
     moveDown: React.autoBind(function(event) {
-        $.ajax({
-            url: "tasks/down",
-            type: "POST",
-            data: {'id': this.props.task.id},
-            dataType: 'json',
-            mimeType: 'textPlain'
-        });
+        $.post("/tasks/down", {'id': this.props.task.id});
     }),
     render: function() {
         return (
@@ -109,14 +91,7 @@ var StoryTaskForm = React.createClass({
 var StoryData = React.createClass({
     handleTaskSubmit: React.autoBind(function (task) {
         task.storyId = this.props.data.id;
-
-        $.ajax({
-            url: "/stories/tasks/new",
-            type: "POST",
-            data: task,
-            dataType: 'json',
-            mimeType: 'textPlain'
-        });
+        $.post("/stories/tasks/new", task);
     }),
     render: function() {
         var taskTable = null;
@@ -177,50 +152,32 @@ var StoryRow = React.createClass({
             this.setState({content: null});
             return;
         }
-        var self = this;
 
-        $.get('/stories/' + this.props.story.id, null,
-              function (data, textStatus, jqXHR) {
-                  self.setState({content: data});
-              }, 'json');
+        $.get('/stories/' + this.props.story.id)
+            .done(function (data, textStatus, jqXHR) {
+                this.setState({content: data});
+            }.bind(this), 'json');
     }),
     changeState: React.autoBind(function(event) {
-        $.ajax({
-            url: "/stories/state",
-            type: "POST",
-            data: {'id': this.props.story.id},
-            dataType: 'json',
-            mimeType: 'textPlain',
-            success: function(data, textStatus, jqXHR) {
+        $.post("/stories/state", {'id': this.props.story.id})
+            .done(function(data, textStatus, jqXHR) {
                 if (data.status == "ok")
                     this.setState({state: data.state});
-            }.bind(this)
-        });
+            }.bind(this));
     }),
     moveUp: React.autoBind(function(event) {
-        $.ajax({
-            url: "/stories/up",
-            type: "POST",
-            data: {'id': this.props.story.id},
-            dataType: 'json',
-            mimeType: 'textPlain',
-            success: function (data, textStatus, jqXHR) {
+        $.post("/stories/up", {'id': this.props.story.id})
+            .done(function (data, textStatus, jqXHR) {
                 if (data.status == "ok")
                     this.props.onMoved(1);
-            }.bind(this)
-        });
+            }.bind(this));
     }),
     moveDown: React.autoBind(function(event) {
-        $.ajax({
-            url: "/stories/down",
-            type: "POST",
-            data: {'id': this.props.story.id},
-            dataType: 'json',
-            mimeType: 'textPlain',
-            success: function (data) {
-                this.props.onMoved(-1);
-            }.bind(this)
-        });
+        $.post("/stories/down", {'id': this.props.story.id})
+            .done(function (data) {
+                if (data.status == "ok")
+                    this.props.onMoved(-1);
+            }.bind(this));
     })
 });
 
@@ -288,13 +245,10 @@ var StoryForm = React.createClass({
 
 var StoryPage = React.createClass({
     loadStoriesFromServer: function() {
-        $.ajax({
-            url: this.props.url,
-            mimeType: 'textPlain',
-            success: function(data) {
-                this.setState({data: eval(data)});
-            }.bind(this)
-        });
+        $.get(this.props.url)
+            .done(function(data) {
+                this.setState({data: data});
+            }.bind(this));
     },
     getInitialState: function() {
         return {data: []};
@@ -310,20 +264,14 @@ var StoryPage = React.createClass({
         this.loadStoriesFromServer();
     }),
     handleStorySubmit: React.autoBind(function (story) {
-        $.ajax({
-            url: "/stories/new",
-            type: "POST",
-            data: story,
-            dataType: 'json',
-            mimeType: 'textPlain',
-            success: function (data, textStatus, jqXHR) {
+        $.post("/stories/new", story)
+            .done(function (data, textStatus, jqXHR) {
                 if (data.status == "ok")
                     this.loadStoriesFromServer();
-            }.bind(this),
-            error: function (jqXHR, textStatus, errorThrown) {
+            }.bind(this))
+            .fail(function (jqXHR, textStatus, errorThrown) {
                 alert("error: " + errorThrown);
-            }.bind(this)
-        });
+            }.bind(this));
     }),
     render: function() {
         return (
