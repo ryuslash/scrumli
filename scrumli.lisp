@@ -191,9 +191,3 @@
   (if (logged-in-p)
       (encode-json-to-string (get-story id))
       403))
-
-(define-route scrumli-story-tasks ("stories/:id/tasks"
-                                   :content-type "json")
-  (if (logged-in-p)
-      (encode-json-to-string (get-tasks-for-story id))
-      403))
