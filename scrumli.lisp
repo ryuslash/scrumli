@@ -86,8 +86,7 @@
 
 (define-route stories-json ("stories" :content-type "text/json")
   (if (logged-in-p)
-      (with-output-to-string (out)
-        (encode-json (get-all-stories) out))
+      (encode-json-to-string (get-all-stories))
       403))
 
 (defmacro with-post-parameters (parameters &body body)
@@ -103,8 +102,7 @@
       (with-post-parameters ("role" "necessity" "headline" "content")
         (post-story role necessity headline content
                     (hunchentoot:session-value :username))
-        (with-output-to-string (out)
-          (encode-json '((status . "ok")) out)))
+        (encode-json-to-string '((status . "ok"))))
       403))
 
 (define-route tasks-new ("stories/tasks/new" :method :post)
@@ -128,7 +126,8 @@
         (encode-json-to-string `((status . "ok") (state . ,next))))
       403))
 
-(define-route task-state ("tasks/state" :method :post)
+(define-route task-state ("tasks/state" :method :post
+                                        :content-type "text/json")
   (if (logged-in-p)
       (let* ((id (hunchentoot:post-parameter "id"))
              (current-state (story-get-state 'task id))
@@ -192,15 +191,11 @@
       (setf (hunchentoot:session-value :username) nil))
   (redirect 'login-page))
 
-(defun json-to-string (obj)
-  (with-output-to-string (out)
-    (encode-json obj out)))
-
 (defun verify-credentials (audience assertion)
   (let ((response
          (http-request "https://verifier.login.persona.org/verify"
                        :method :post :content-type "application/json"
-                       :content (json-to-string
+                       :content (encode-json-to-string
                                  `(("assertion" . ,assertion)
                                    ("audience" . ,audience)))
                        :want-stream t)))
@@ -218,8 +213,7 @@
           (redirect 'main))
         403)))
 
-(define-route scrumli-story ("stories/:id")
+(define-route scrumli-story ("stories/:id" :content-type "json")
   (if (logged-in-p)
-      (with-output-to-string (out)
-        (encode-json (get-story id) out))
+      (encode-json-to-string (get-story id))
       403))
