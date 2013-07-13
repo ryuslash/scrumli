@@ -247,6 +247,7 @@ var StoryPage = React.createClass({
     loadStoriesFromServer: function() {
         $.get(this.props.url)
             .done(function(data) {
+                this.setState({data: []});
                 this.setState({data: data});
             }.bind(this));
     },
