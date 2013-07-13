@@ -7,8 +7,11 @@
   :description "Scrum with Lisp"
   :author "Tom Willemse"
   :license "AGPLv3"
-  :depends-on (:restas :sexml :postmodern :cl-json :drakma)
-  :components ((:file "defmodule")
+  :depends-on (:restas :sexml :postmodern :cl-json :drakma
+                       :closure-template)
+  :defsystem-depends-on (:closure-template)
+  :components ((:closure-template "templates/scrumli")
+               (:file "defmodule")
                (:file "pg-datastore")
                (:file "util")
                (:file "scrumli")))

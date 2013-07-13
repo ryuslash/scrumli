@@ -31,7 +31,7 @@
   (hunchentoot:session-value :username))
 
 (defun page-title (title)
-  (<:title (concatenate 'string title " | scrumli")))
+  (concatenate 'string title " | scrumli"))
 
 (defun css (&rest sheets)
   (apply 'concatenate 'string
@@ -54,28 +54,18 @@
 
 (define-route main ("")
   (if (logged-in-p)
-      (<:html
-       (<:head (page-title "Backlog")
-               (css *scrumli-bootstrap-css-location*
-                    *scrumli-font-awesome-css-location*
-                    (genurl 'scrumli-css))
-               (js *scrumli-bootstrap-js-location*
-                   *scrumli-jquery-js-location*
-                   *scrumli-react-js-location*
-                   *scrumli-jsxtransformer-js-location*))
-       (<:body
-        (navbar (<:div :class "pull-right"
-                       (<:span :class "navbar-text"
-                               (hunchentoot:session-value :username))
-                       (<:ul :class "nav pull-right"
-                             (<:li :class "divider-vertical")
-                             (<:li (<:a :href (genurl 'logout-page)
-                                        "Logout"))
-                             (<:li :class "divider-vertical"))))
-        (<:div :class "container"
-               (<:h1 "Backlog")
-               (<:div :id "content")
-               (<:script :type "text/jsx" :src (genurl 'main-js)))))
+      (scrumli-templates:main
+       `(:title ,(page-title "Backlog")
+         :csss ,(list *scrumli-bootstrap-css-location*
+                      *scrumli-font-awesome-css-location*
+                      (genurl 'scrumli-css))
+         :jss ,(list *scrumli-bootstrap-js-location*
+                     *scrumli-jquery-js-location*
+                     *scrumli-react-js-location*
+                     *scrumli-jsxtransformer-js-location*)
+         :username ,(hunchentoot:session-value :username)
+         :ulogout ,(genurl 'logout-page)
+         :umainjs ,(genurl 'main-js)))
       (redirect 'login-page)))
 
 (defmacro serve-static (name relpath)
@@ -162,32 +152,12 @@
 
 (define-route login-page ("login")
   (if (not (logged-in-p))
-      (<:html :lang "en"
-              (<:head (<:meta :charset "utf-8")
-                      (page-title "Login")
-                      (css *scrumli-bootstrap-css-location*)
-                      (js *scrumli-bootstrap-js-location*
-                          "https://login.persona.org/include.js"
-                          (genurl 'login-js)))
-              (<:body
-               (navbar (<:ul :class "nav pull-right"
-                             (<:li :class "divider-vertical")
-                             (<:li (<:a :href "javascript:login()"
-                                        "Login"))
-                             (<:li :class "divider-vertical")))
-               (<:div :class "container"
-                      (<:br)
-                      (<:div :class "hero-unit"
-                             (<:h1 "Scrumli")
-                             (<:p "As a " (<:em "developer") " I "
-                                  (<:em "love") " to " (<:em "scrum")
-                                  "...")
-                             (<:a :class "btn btn-primary btn-large"
-                                  :href "javascript:login()"
-                                  "Login")))
-               (<:form :id "login-form" :method "POST" :action ""
-                       (<:input :id "assertion-field" :type "hidden"
-                                :name "assertion" :value ""))))
+      (scrumli-templates:login
+       `(:title ,(page-title "Login")
+         :csss ,(list *scrumli-bootstrap-css-location*)
+         :jss ,(list *scrumli-bootstrap-js-location*
+                     "https://login.persona.org/include.js"
+                     (genurl 'login-js))))
       (redirect 'main)))
 
 (define-route logout-page ("logout")

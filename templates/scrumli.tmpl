@@ -1,0 +1,91 @@
+{namespace scrumli-templates}
+
+{template main}
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <title>{$title}</title>
+      {foreach $css in $csss}
+        <link href="{$css}" rel="stylesheet" type="text/css">
+      {/foreach}
+      {foreach $js in $jss}
+        <script src="{$js}" type="text/javascript" language="javascript">
+        </script>
+      {/foreach}
+    </head>
+    <body>
+      <div class="navbar navbar-static-top navbar-inverse">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand">scrumli</a>
+            <div class="pull-right">
+              <span class="navbar-text">
+                {$username}
+              </span>
+              <ul class="nav pull-right">
+                <li class="divider-vertical"></li>
+                <li><a href="{$ulogout}">Logout</a></li>
+                <li class="divider-vertical"></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <h1>Backlog</h1>
+        <div id="content"></div>
+        <script src="{$umainjs}" type="text/jsx"></script>
+      </div>
+    </body>
+  </html>
+{/template}
+
+{template login}
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <title>{$title}</title>
+      {foreach $css in $csss}
+        <link href="{$css}" rel="stylesheet" type="text/css">
+      {/foreach}
+      {foreach $js in $jss}
+        <script src="{$js}" type="text/javascript" language="javascript">
+        </script>
+      {/foreach}
+    </head>
+    <body>
+      <div class="navbar navbar-static-top navbar-inverse">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand">scrumli</a>
+            <ul class="nav pull-right">
+              <li class="divider-vertical"></li>
+              <li><a href="javascript:login()">Login</a></li>
+              <li class="divider-vertical"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <br />
+        <div class="hero-unit">
+          <h1>Scrumli</h1>
+          <p>
+            As a <em>developer</em> I <em>love</em>
+            to <em>scrum</em>...
+          </p>
+          <a class="btn btn-primary btn-large" href="javascript:login()">
+            Login
+          </a>
+        </div>
+      </div>
+      <form id="login-form" method="POST" action="">
+        <input id="assertion-field" type="hidden" name="assertion" />
+      </form>
+    </body>
+  </html>
+{/template}
