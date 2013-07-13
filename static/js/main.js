@@ -90,35 +90,34 @@ var StoryTaskForm = React.createClass({
 
 var StoryData = React.createClass({
     handleTaskSubmit: React.autoBind(function (task) {
-        task.storyId = this.props.data.id;
+        task.storyId = this.state.data.id;
         $.post("/stories/tasks/new", task);
     }),
+    getInitialState: function() {
+        return {data: null};
+    },
+    setData: function(data) {
+        this.setState({data: data});
+    },
     render: function() {
-        var taskTable = null;
-
-        if (this.props.data.tasks)
-            taskTable = <StoryTaskTable tasks={this.props.data.tasks} />;
-
-        if (this.props.data) {
+        if (this.state.data) {
             return (<div>
-                    Assignee: {this.props.data.assignee}
-                    <pre>{this.props.data.content}</pre>
-                    {taskTable}
-                    <StoryTaskForm onTaskSubmit={this.handleTaskSubmit} />
+                      <h1>{this.state.data.title}</h1>
+                      Assignee: {this.state.data.assignee}
+                      <div class="well">
+                        {this.state.data.content}
+                      </div>
+                      <StoryTaskTable tasks={this.state.data.tasks || []} />
+                      <StoryTaskForm onTaskSubmit={this.handleTaskSubmit} />
                     </div>);
         }
 
-        return null;
+        return <div></div>;
     }
 });
 
 var StoryRow = React.createClass({
     render: function() {
-        var sdata = null;
-
-        if (this.state.content)
-            sdata = <StoryData data={this.state.content} />;
-
         return (
             <tr>
               <td class="span1">
@@ -137,8 +136,6 @@ var StoryRow = React.createClass({
                   {this.props.story.necessity} to
                   {this.props.story.title}
                 </a>
-                <br />
-                {sdata}
               </td>
             </tr>
         );
@@ -148,15 +145,7 @@ var StoryRow = React.createClass({
                 content: null};
     },
     handleClick: React.autoBind(function(event) {
-        if (!!this.state.content) {
-            this.setState({content: null});
-            return;
-        }
-
-        $.get('/stories/' + this.props.story.id)
-            .done(function (data, textStatus, jqXHR) {
-                this.setState({content: data});
-            }.bind(this), 'json');
+        this.props.onTitleClicked(this.props.story.id);
     }),
     changeState: React.autoBind(function(event) {
         $.post("/stories/state", {'id': this.props.story.id})
@@ -185,9 +174,13 @@ var StoryTable = React.createClass({
     handleMoved: React.autoBind(function(direction) {
         this.props.onStoryMoved(direction);
     }),
+    handleSelected: React.autoBind(function(storyId) {
+        this.props.onStorySelected(storyId);
+    }),
     render: function() {
         var storyNodes = this.props.data.map(function (story) {
-            return <StoryRow story={story} onMoved={this.handleMoved} />;
+            return <StoryRow story={story} onMoved={this.handleMoved}
+                             onTitleClicked={this.handleSelected} />;
         }.bind(this));
         return (
             <table class="table table-striped">
@@ -274,11 +267,24 @@ var StoryPage = React.createClass({
                 alert("error: " + errorThrown);
             }.bind(this));
     }),
+    handleStorySelected: React.autoBind(function (storyId) {
+        $.get('/stories/' + storyId)
+            .done(function (data, textStatus, jqXHR) {
+                this.refs.data.setData(data);
+            }.bind(this), 'json');
+    }),
     render: function() {
         return (
-            <div>
-              <StoryTable data={this.state.data} onStoryMoved={this.handleStoryMoved} />
-              <StoryForm onStorySubmit={this.handleStorySubmit} />
+            <div class="row">
+              <div class="span6">
+                <StoryTable data={this.state.data}
+                            onStoryMoved={this.handleStoryMoved}
+                            onStorySelected={this.handleStorySelected} />
+                <StoryForm onStorySubmit={this.handleStorySubmit} />
+              </div>
+              <div class="span6">
+                <StoryData ref="data" />
+              </div>
             </div>
         );
     }
