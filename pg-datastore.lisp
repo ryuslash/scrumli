@@ -94,8 +94,11 @@
                                              :where (:= 'id id))
                                     :single))
            (next-priority (funcall (ecase dir (:up #'-) (:down #'+))
-                                   current-priority 1)))
+                                   current-priority 1))
+           (max-priority (query (:select (:max 'priority) :from type)
+                                :single)))
       (execute (:update type :set 'priority current-priority
                         :where (:= 'priority next-priority)))
-      (execute (:update type :set 'priority next-priority
+      (execute (:update type :set
+                        'priority (max 1 (min next-priority max-priority))
                         :where (:= 'id id))))))
