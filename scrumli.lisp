@@ -59,8 +59,8 @@
          :csss ,(list *scrumli-bootstrap-css-location*
                       *scrumli-font-awesome-css-location*
                       (genurl 'scrumli-css))
-         :jss ,(list *scrumli-bootstrap-js-location*
-                     *scrumli-jquery-js-location*
+         :jss ,(list *scrumli-jquery-js-location*
+                     *scrumli-bootstrap-js-location*
                      *scrumli-react-js-location*
                      *scrumli-jsxtransformer-js-location*)
          :username ,(hunchentoot:session-value :username)

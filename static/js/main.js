@@ -229,6 +229,7 @@ var StoryForm = React.createClass({
         var headline = this.refs.headline.getDOMNode().value.trim();
         var content = this.refs.content.getDOMNode().value.trim();
 
+        $(".myModal").modal('hide');
         this.props.onStorySubmit({role: role,
                                   necessity: necessity,
                                   headline: headline,
@@ -243,27 +244,51 @@ var StoryForm = React.createClass({
     }),
     render: function() {
         return (
-            <form onSubmit={this.handleSubmit}>
-              <fieldset>
-                <legend class="toggle">New story</legend>
+          <div class="myModal modal fade hide">
+            <form onSubmit={this.handleSubmit} class="form-horizontal">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                  &times;
+                </button>
+                <h3 id="myModalLabel">New story</h3>
+              </div>
+              <div class="modal-body">
                 <div id="new-story">
-                  <div class="input-prepend input-append">
-                    <span class="add-on">As a </span>
-                    <input type="text" class="input-medium" ref="role"
-                           placeholder="person" />
-                    <span class="add-on"> I </span>
-                    <input type="text" class="input-small"
-                           ref="necessity" placeholder="would like" />
-                    <span class="add-on"> to </span>
-                    <input type="text" class="input-xxlarge"
-                           ref="headline" placeholder="fill in this form..." />
-                    <button class="btn btn-primary" type="submit">!</button>
-                    <br />
-                    <textarea ref="content"></textarea>
+                  <div class="control-group">
+                    <label class="control-label">As a</label>
+                    <div class="controls">
+                      <input type="text" ref="role" placeholder="person" />
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label">I</label>
+                    <div class="controls">
+                      <input type="text" ref="necessity"
+                             placeholder="would like" />
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label">to</label>
+                    <div class="controls">
+                      <input type="text" ref="headline"
+                             placeholder="fill in this form..." />
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <div class="controls">
+                      <textarea ref="content"></textarea>
+                    </div>
                   </div>
                 </div>
-              </fieldset>
+              </div>
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">
+                  Close
+                </button>
+                <button class="btn btn-primary" type="submit">Save</button>
+              </div>
             </form>
+          </div>
         );
     }
 });
