@@ -52,6 +52,10 @@
                         (<:a :class "brand" "scrumli")
                         ,@body))))
 
+(defun md5-hash (str)
+  (string-downcase (format nil "~{~2,'0x~}"
+                           (coerce (md5:md5sum-string str) 'list))))
+
 (define-route main ("")
   (if (logged-in-p)
       (scrumli-templates:main
@@ -64,6 +68,7 @@
                      *scrumli-react-js-location*
                      *scrumli-jsxtransformer-js-location*)
          :username ,(hunchentoot:session-value :username)
+         :usermd5 ,(md5-hash (hunchentoot:session-value :username))
          :ulogout ,(genurl 'logout-page)
          :umainjs ,(genurl 'main-js)))
       (redirect 'login-page)))

@@ -8,7 +8,7 @@
   :author "Tom Willemse"
   :license "AGPLv3"
   :depends-on (:restas :sexml :postmodern :cl-json :drakma
-                       :closure-template)
+                       :closure-template :md5)
   :defsystem-depends-on (:closure-template)
   :components ((:closure-template "templates/scrumli")
                (:file "defmodule")
