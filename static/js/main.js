@@ -133,7 +133,7 @@ var StoryData = React.createClass({
             return (<div>
                       <h1>{this.state.data.title}</h1>
                       Assignee: {this.state.data.assignee}
-                      <div class="well">
+                      <div class="well normalText">
                         {this.state.data.content}
                       </div>
                       <StoryTaskTable tasks={this.state.data.tasks || []}

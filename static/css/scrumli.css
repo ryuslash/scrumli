@@ -6,3 +6,7 @@ button.nothing {
     background-color: inherit;
     border: none;
 }
+
+div.normalText {
+    white-space: pre-wrap;
+}
