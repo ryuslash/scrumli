@@ -263,16 +263,10 @@ var StoryRow = React.createClass({
 });
 
 var StoryTable = React.createClass({
-    handleMoved: React.autoBind(function(direction) {
-        this.props.onStoryMoved(direction);
-    }),
-    handleSelected: React.autoBind(function(storyId) {
-        this.props.onStorySelected(storyId);
-    }),
     render: function() {
         var storyNodes = this.props.data.map(function (story) {
-            return <StoryRow story={story} onMoved={this.handleMoved}
-                             onTitleClicked={this.handleSelected}
+            return <StoryRow story={story} onMoved={this.props.onStoryMoved}
+                             onTitleClicked={this.props.onStorySelected}
                              onAssigneeClicked={this.props.onAssigneeClicked} />;
         }.bind(this));
         return (
