@@ -282,7 +282,7 @@ var StoryForm = React.createClass({
         var headline = this.refs.headline.getDOMNode().value.trim();
         var content = this.refs.content.getDOMNode().value.trim();
 
-        $(".myModal").modal('hide');
+        $(".newTaskModal").modal('hide');
         this.props.onStorySubmit({role: role,
                                   necessity: necessity,
                                   headline: headline,
@@ -297,13 +297,13 @@ var StoryForm = React.createClass({
     }),
     render: function() {
         return (
-          <div class="myModal modal fade hide">
+          <div class="newTaskModal modal fade hide">
             <form onSubmit={this.handleSubmit} class="form-horizontal">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">
                   &times;
                 </button>
-                <h3 id="myModalLabel">New story</h3>
+                <h3 id="newTaskModalLabel">New story</h3>
               </div>
               <div class="modal-body">
                 <div id="new-story">
