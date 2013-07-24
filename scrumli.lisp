@@ -221,3 +221,12 @@
         (set-assignee 'story id assignee)
         (encode-json-to-string '((status . "ok"))))
       403))
+
+(define-route scrumli-task-set-assignee ("tasks/assignee"
+                                         :content-type "json"
+                                         :method :post)
+  (if (logged-in-p)
+      (with-post-parameters ("id" "assignee")
+        (set-assignee 'task id assignee)
+        (encode-json-to-string '((status . "ok"))))
+      403))

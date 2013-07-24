@@ -34,10 +34,8 @@ var AssigneeIcon = React.createClass({
                         title={this.props.assignee}
                         alt={this.props.assignee} />;
         else
-            icon = (<span title="Unknown" class="icon-stack">
-                      <i class="icon-sign-blank icon-stack-base"></i>
-                      <i class="icon-question icon-light"></i>
-                    </span>);
+            icon = <i title="Unknown"
+                      class="icon-question icon-border"></i>;
 
         return icon;
     }
@@ -68,6 +66,12 @@ var StoryTaskRow = React.createClass({
                     this.props.onMoved(-1);
             }.bind(this));
     }),
+    handleAssigneeClick: React.autoBind(function(event) {
+        this.props.onAssigneeClicked({url: "/tasks/assignee",
+                                      id: this.props.task.id,
+                                      assignee: this.props.task.assignee,
+                                      md5: this.props.task.md5});
+    }),
     render: function() {
         return (
             <tr>
@@ -78,8 +82,11 @@ var StoryTaskRow = React.createClass({
                    onClick={this.moveDown}></i>
               </td>
               <td class="span1">
-                <AssigneeIcon assignee={this.props.task.assignee}
-                              md5={this.props.task.md5} />
+                <button onClick={this.handleAssigneeClick}
+                        class="nothing">
+                  <AssigneeIcon assignee={this.props.task.assignee}
+                                md5={this.props.task.md5} />
+                </button>
               </td>
               <td class="span2">
                 <span onClick={this.changeState} class="clickable">
@@ -100,7 +107,8 @@ var StoryTaskTable = React.createClass({
     render: function() {
         var taskNodes = this.props.tasks.map(function (task) {
             return <StoryTaskRow task={task}
-                                 onMoved={this.props.onTaskMoved} />;
+                                 onMoved={this.props.onTaskMoved}
+                                 onAssigneeClicked={this.props.onAssigneeClicked} />;
         }.bind(this));
 
         return (
@@ -167,26 +175,16 @@ var StoryData = React.createClass({
     handleTaskMoved: React.autoBind(function(direction) {
         this.loadStoryFromServer();
     }),
-    handleAssigned: React.autoBind(function(event) {
-        $.post("/story/assignee", {id: this.state.data.id,
-                                   assignee: event.target.value})
-            .fail(function() {
-                event.target.value = "";
-            }.bind(this));
-    }),
     render: function() {
         if (this.state.data) {
             return (<div>
                       <h1>{this.state.data.title}</h1>
-                      Assignee:
-                      <input type="text" ref="assignee"
-                             value={this.state.data.assignee}
-                             onChange={this.handleAssigned} />
                       <div class="well normalText">
                         {this.state.data.content}
                       </div>
                       <StoryTaskTable tasks={this.state.data.tasks || []}
-                                      onTaskMoved={this.handleTaskMoved} />
+                                      onTaskMoved={this.handleTaskMoved}
+                                      onAssigneeClicked={this.props.onAssigneeClicked} />
                       <StoryTaskForm onTaskSubmit={this.handleTaskSubmit} />
                     </div>);
         }
@@ -196,6 +194,12 @@ var StoryData = React.createClass({
 });
 
 var StoryRow = React.createClass({
+    handleAssigneeClick: React.autoBind(function(event) {
+        this.props.onAssigneeClicked({url: "/story/assignee",
+                                      id: this.props.story.id,
+                                      assignee: this.props.story.assignee,
+                                      md5: this.props.story.md5});
+    }),
     render: function() {
         return (
             <tr>
@@ -206,8 +210,11 @@ var StoryRow = React.createClass({
                    onClick={this.moveDown}></i>
               </td>
               <td class="span1">
-                <AssigneeIcon assignee={this.props.story.assignee}
-                              md5={this.props.story.md5} />
+                <button onClick={this.handleAssigneeClick}
+                        class="nothing">
+                  <AssigneeIcon assignee={this.props.story.assignee}
+                                md5={this.props.story.md5} />
+                </button>
               </td>
               <td class="span2">
                 <span onClick={this.changeState} class="clickable">
@@ -265,12 +272,56 @@ var StoryTable = React.createClass({
     render: function() {
         var storyNodes = this.props.data.map(function (story) {
             return <StoryRow story={story} onMoved={this.handleMoved}
-                             onTitleClicked={this.handleSelected} />;
+                             onTitleClicked={this.handleSelected}
+                             onAssigneeClicked={this.props.onAssigneeClicked} />;
         }.bind(this));
         return (
             <table class="table table-striped">
               {storyNodes}
             </table>
+        );
+    }
+});
+
+var AssignmentForm = React.createClass({
+    handleChanged: React.autoBind(function() {
+        var assignee = this.refs.assignee.getDOMNode().value;
+
+        $.post(this.state.url,
+               {id: this.state.id, assignee: assignee})
+            .done(function (data) {
+                if (data.status == "ok") {
+                    this.refs.assignee.getDOMNode().value = '';
+                    $(".assignModal").modal('hide');
+                }
+            }.bind(this));
+    }),
+    setInfo: React.autoBind(function(info) {
+        this.setState(info);
+    }),
+    getInitialState: function () {
+        return {id: 0, assignee: "", url: "", md5: ""};
+    },
+    render: function() {
+        return (
+            <div class="assignModal modal fade hide">
+                <div class="modal-header">
+                  <button type="button" class="close"
+                          data-dismiss="modal">
+                    &times;
+                  </button>
+                <h3 id="assignModalLabel">Assign</h3>
+              </div>
+              <div class="modal-body">
+                <AssigneeIcon assignee={this.state.assignee}
+                              md5={this.state.md5} /> {" "}
+                <input type="text" ref="assignee"
+                       value={this.state.assignee}
+                       onChange={this.handleChanged} />
+              </div>
+              <div class="modal-footer">
+              </div>
+            </div>
         );
     }
 });
@@ -383,18 +434,28 @@ var StoryPage = React.createClass({
                 this.refs.data.setData(data);
             }.bind(this), 'json');
     }),
+    handleAssigneeClicked: React.autoBind(function (info) {
+        var form = this.refs.assignmentForm;
+
+        form.setInfo(info);
+
+        $(".assignModal").modal();
+    }),
     render: function() {
         return (
             <div class="row">
               <div class="span6">
                 <StoryTable data={this.state.data}
                             onStoryMoved={this.handleStoryMoved}
-                            onStorySelected={this.handleStorySelected} />
+                            onStorySelected={this.handleStorySelected}
+                            onAssigneeClicked={this.handleAssigneeClicked} />
                 <StoryForm onStorySubmit={this.handleStorySubmit} />
+                <AssignmentForm ref="assignmentForm" />
               </div>
               <div class="span6">
                 <StoryData ref="data"
-                           pollInterval={this.props.pollInterval} />
+                           pollInterval={this.props.pollInterval}
+                           onAssigneeClicked={this.handleAssigneeClicked} />
               </div>
             </div>
         );
