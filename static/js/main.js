@@ -24,6 +24,25 @@ var StateIcon = React.createClass({
     }
 });
 
+var AssigneeIcon = React.createClass({
+    render: function() {
+        var icon;
+
+        if (this.props.assignee)
+            icon = <img src={"https://secure.gravatar.com/avatar/" +
+                             this.props.md5 + '?s=24'}
+                        title={this.props.assignee}
+                        alt={this.props.assignee} />;
+        else
+            icon = (<span title="Unknown" class="icon-stack">
+                      <i class="icon-sign-blank icon-stack-base"></i>
+                      <i class="icon-question icon-light"></i>
+                    </span>);
+
+        return icon;
+    }
+});
+
 var StoryTaskRow = React.createClass({
     changeState: React.autoBind(function(event) {
         $.post("/tasks/state", {'id': this.props.task.id})
@@ -57,6 +76,10 @@ var StoryTaskRow = React.createClass({
                    onClick={this.moveUp}></i>
                 <i class="icon-arrow-down clickable"
                    onClick={this.moveDown}></i>
+              </td>
+              <td class="span1">
+                <AssigneeIcon assignee={this.props.task.assignee}
+                              md5={this.props.task.md5} />
               </td>
               <td class="span2">
                 <span onClick={this.changeState} class="clickable">
@@ -181,6 +204,10 @@ var StoryRow = React.createClass({
                    onClick={this.moveUp}></i>
                 <i class="icon-arrow-down clickable"
                    onClick={this.moveDown}></i>
+              </td>
+              <td class="span1">
+                <AssigneeIcon assignee={this.props.story.assignee}
+                              md5={this.props.story.md5} />
               </td>
               <td class="span2">
                 <span onClick={this.changeState} class="clickable">

@@ -57,16 +57,19 @@
 
 (defmethod datastore-get-all-stories ((datastore pg-datastore))
   (with-connection (connection-spec datastore)
-    (query (:order-by (:select :* :from 'story) 'priority) :alists)))
+    (query (:order-by (:select :* (:as (:md5 'assignee) 'md5)
+                               :from 'story) 'priority) :alists)))
 
 (defmethod datastore-get-story ((datastore pg-datastore) id)
   (with-connection (connection-spec datastore)
-    (append (query (:select :* :from 'story :where (:= 'id id)) :alist)
+    (append (query (:select :* (:as (:md5 'assignee) 'md5) :from 'story
+                            :where (:= 'id id)) :alist)
             `((tasks . ,(datastore-get-tasks-for-story datastore id))))))
 
 (defmethod datastore-get-tasks-for-story ((datastore pg-datastore) id)
   (with-connection (connection-spec datastore)
-    (query (:order-by (:select :* :from 'task :where (:= 'story-id id))
+    (query (:order-by (:select :* (:as (:md5 'assignee) 'md5) :from 'task
+                               :where (:= 'story-id id))
                       'priority)
            :alists)))
 
