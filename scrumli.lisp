@@ -212,3 +212,12 @@
   (if (logged-in-p)
       (encode-json-to-string (get-story id))
       403))
+
+(define-route scrumli-story-set-assignee ("story/assignee"
+                                          :content-type "json"
+                                          :method :post)
+  (if (logged-in-p)
+      (with-post-parameters ("id" "assignee")
+        (set-assignee 'story id assignee)
+        (encode-json-to-string '((status . "ok"))))
+      403))

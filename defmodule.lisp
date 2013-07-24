@@ -44,7 +44,10 @@
     "Set the state of a story.")
 
   (define-method story-change-priority (type id dir)
-    "Change the priority of a story in direction DIR."))
+    "Change the priority of a story in direction DIR.")
+
+  (define-method set-assignee (type id assignee)
+    "Change the assigned person for a story or task."))
 
 (restas:define-module #:scrumli
   (:use #:cl #:restas #:json #:scrumli.datastore #:drakma)

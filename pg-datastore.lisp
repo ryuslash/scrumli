@@ -118,3 +118,9 @@
       (execute (:update type :set
                         'priority (max 1 (min next-priority max-priority))
                         :where (:= 'id id))))))
+
+(defmethod datastore-set-assignee
+    ((datastore pg-datastore) type id assignee)
+  (with-connection (connection-spec datastore)
+    (execute (:update type :set 'assignee assignee
+                      :where (:= 'id id)))))

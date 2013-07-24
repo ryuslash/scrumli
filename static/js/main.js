@@ -144,11 +144,21 @@ var StoryData = React.createClass({
     handleTaskMoved: React.autoBind(function(direction) {
         this.loadStoryFromServer();
     }),
+    handleAssigned: React.autoBind(function(event) {
+        $.post("/story/assignee", {id: this.state.data.id,
+                                   assignee: event.target.value})
+            .fail(function() {
+                event.target.value = "";
+            }.bind(this));
+    }),
     render: function() {
         if (this.state.data) {
             return (<div>
                       <h1>{this.state.data.title}</h1>
-                      Assignee: {this.state.data.assignee}
+                      Assignee:
+                      <input type="text" ref="assignee"
+                             value={this.state.data.assignee}
+                             onChange={this.handleAssigned} />
                       <div class="well normalText">
                         {this.state.data.content}
                       </div>
