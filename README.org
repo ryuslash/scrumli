@@ -1,0 +1,49 @@
+#+STARTUP: showall
+
+* Scrumli
+
+  I know next to nothing about scrum. I know only that I want to stay
+  away from it as much as I can. So here I am writing a project to
+  help us (eventually) scrum.
+
+* Requirements
+
+  It ...
+
+  - ... is written in Common Lisp. Specifically it is written for ~sbcl~.
+  - ... uses Mozilla Persona for authentication and ~drakma~ to
+    communicate with Mozilla Persona.
+  - ... uses Gravatar for avatars and ~md5~ to get the Gravatar avatars
+  - ... uses the ~restas~ web framework.
+  - ... uses PostgreSQL as a database and ~postmodern~ to talk to
+    the database.
+  - ... uses ~cl-json~ to generate JSON
+  - ... uses ~closure-template~ for the few templates it has.
+  - ... uses bootstrap for layout.
+  - ... uses jQuery for some of the JavaScript functionality.
+  - ... uses Font Awesome for icons.
+  - ... and uses React for the UI.
+
+  In other words you need to have the following software installed:
+
+  - [[http://sbcl.org][SBCL]]
+  - [[http://postgresql.org][PostgreSQL]]
+
+  And the following Common Lisp packages:
+
+  - ~drakma~
+  - ~md5~
+  - ~restas~
+  - ~postmodern~
+  - ~cl-json~
+  - ~closure-template~
+
+  ... which should all be available through [[http://quicklisp.org][Quicklisp]]. And the
+  following JavaScript and/or CSS frameworks and libraries are pulled
+  from CDN's by default, but may be customized to load from anywhere
+  you wish:
+
+  - [[http://twitter.github.io/bootstrap][Bootstrap]]
+  - [[http://jquery.com][jQuery]]
+  - [[http://fontawesome.io][Font Awesome]]
+  - [[http://facebook.github.io/react][React]]
