@@ -181,7 +181,8 @@
   (if (not (logged-in-p))
       (scrumli-templates:login
        `(:title ,(page-title "Login")
-         :csss ,(list *scrumli-bootstrap-css-location*)
+         :csss ,(list *scrumli-bootstrap-css-location*
+                      *scrumli-font-awesome-css-location*)
          :jss ,(list *scrumli-bootstrap-js-location*
                      "https://login.persona.org/include.js"
                      (genurl 'login-js))))
