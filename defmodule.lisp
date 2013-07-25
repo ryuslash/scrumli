@@ -25,6 +25,9 @@
   (define-method get-all-stories ()
     "Get all of the stories in the datastore.")
 
+  (define-method get-stories-for (username)
+    "Get all of the storiess for USERNAME.")
+
   (define-method get-story (id)
     "Get a story from the datastore.")
 

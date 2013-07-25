@@ -102,6 +102,12 @@
       (encode-json-to-string (get-all-stories))
       403))
 
+(define-route my-stories-json ("stories/mine" :content-type "text/json")
+  (if (logged-in-p)
+      (encode-json-to-string (get-stories-for
+                              (hunchentoot:session-value :username)))
+      403))
+
 (defmacro with-post-parameters (parameters &body body)
   `(let ,(mapcar (lambda (p)
                    (list (intern (string-upcase p))

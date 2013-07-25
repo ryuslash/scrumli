@@ -393,15 +393,18 @@ var StoryForm = React.createClass({
 
 var StoryPage = React.createClass({
     loadStoriesFromServer: function() {
-        $.get(this.props.url)
+        $.get(this.state.url)
             .done(function(data) {
                 this.setState({data: []});
                 this.setState({data: data});
             }.bind(this));
     },
     getInitialState: function() {
-        return {data: []};
+        return {data: [], url: this.props.url};
     },
+    setUrl: React.autoBind(function(url) {
+        this.setState({url: url});
+    }),
     componentWillMount: function() {
         this.loadStoriesFromServer();
         setInterval(
@@ -456,7 +459,35 @@ var StoryPage = React.createClass({
     }
 });
 
+var StoryFilter = React.createClass({
+    getInitialState: function() {
+        return {filter: 'all'};
+    },
+    handleClick: React.autoBind(function(event) {
+        this.setState({filter: (this.state.filter != 'all'
+                                ? 'all' : 'user')});
+        scrumli_page.setUrl((this.state.filter == "all"
+                             ? "/stories" : "/stories/mine"));
+    }),
+    render: function() {
+        var classes = {all: ['icon-group', 'All'],
+                       user: ['icon-user', 'Mine']};
+
+        return (<a onClick={this.handleClick}>
+                  <i class={classes[this.state.filter][0] + ' icon-light'}></i>
+                  {" "} {classes[this.state.filter][1]}
+                </a>);
+    }
+});
+
+var scrumli_page = <StoryPage url="/stories" pollInterval={5000} />;
+
 React.renderComponent(
-    <StoryPage url="/stories" pollInterval={5000} />,
+    scrumli_page,
     document.getElementById('content')
+);
+
+React.renderComponent(
+    <StoryFilter />,
+    document.getElementById('filter')
 );
