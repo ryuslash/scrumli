@@ -1,10 +1,8 @@
 #+STARTUP: showall
 
-* Scrumli
-
-  I know next to nothing about scrum. I know only that I want to stay
-  away from it as much as I can. So here I am writing a project to
-  help us (eventually) scrum.
+I know next to nothing about scrum. I know only that I want to stay
+away from it as much as I can. So here I am writing a project to help
+us (eventually) scrum.
 
 * Requirements
 
