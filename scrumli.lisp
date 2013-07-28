@@ -49,25 +49,6 @@
 (defun page-title (title)
   (concatenate 'string title " | scrumli"))
 
-(defun css (&rest sheets)
-  (apply 'concatenate 'string
-         (mapcar (lambda (s)
-                   (<:link :href s :rel "stylesheet" :type "text/css"))
-                 sheets)))
-
-(defun js (&rest scripts)
-  (apply 'concatenate 'string
-         (mapcar (lambda (s)
-                   (<:script :type "text/javascript" :src s))
-                 scripts)))
-
-(defmacro navbar (&body body)
-  `(<:div :class "navbar navbar-static-top navbar-inverse"
-          (<:div :class "navbar-inner"
-                 (<:div :class "container"
-                        (<:a :class "brand" "scrumli")
-                        ,@body))))
-
 (defun md5-hash (str)
   (string-downcase (format nil "~{~2,'0x~}"
                            (coerce (md5:md5sum-string str) 'list))))

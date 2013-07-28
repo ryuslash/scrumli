@@ -64,11 +64,3 @@
 
 (defparameter *static-directory*
   (merge-pathnames #P"static/" scrumli-config:*base-directory*))
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
- (sexml:with-compiletime-active-layers
-     (sexml:standard-sexml sexml:xml-doctype)
-   (sexml:support-dtd
-    (merge-pathnames "html5.dtd" (asdf:system-source-directory "sexml"))
-    :<)))
-(<:augment-with-doctype "html" "" :auto-emit-p t)
