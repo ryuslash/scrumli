@@ -43,7 +43,7 @@ var AssigneeIcon = React.createClass({
 
 var StoryTaskRow = React.createClass({
     changeState: React.autoBind(function(event) {
-        $.post("/tasks/state", {'id': this.props.task.id})
+        $.post(baseUrl + "tasks/state", {'id': this.props.task.id})
             .done(function (data, textStatus, jqXHR) {
                 if (data.status == "ok")
                     this.setState({state: data.state});
@@ -53,21 +53,21 @@ var StoryTaskRow = React.createClass({
         return {state: this.props.task.state};
     },
     moveUp: React.autoBind(function(event) {
-        $.post("/tasks/up", {'id': this.props.task.id})
+        $.post(baseUrl + "tasks/up", {'id': this.props.task.id})
             .done(function (data) {
                 if (data.status == "ok")
                     this.props.onMoved(1);
             }.bind(this));
     }),
     moveDown: React.autoBind(function(event) {
-        $.post("/tasks/down", {'id': this.props.task.id})
+        $.post(baseUrl + "tasks/down", {'id': this.props.task.id})
             .done(function (data) {
                 if (data.status == "ok")
                     this.props.onMoved(-1);
             }.bind(this));
     }),
     handleAssigneeClick: React.autoBind(function(event) {
-        this.props.onAssigneeClicked({url: "/tasks/assignee",
+        this.props.onAssigneeClicked({url: baseUrl + "task/assignee",
                                       id: this.props.task.id,
                                       assignee: this.props.task.assignee,
                                       md5: this.props.task.md5});
@@ -149,14 +149,14 @@ var StoryTaskForm = React.createClass({
 var StoryData = React.createClass({
     handleTaskSubmit: React.autoBind(function (task) {
         task.storyId = this.state.data.id;
-        $.post("/stories/tasks/new", task)
+        $.post(baseUrl + "stories/tasks/new", task)
             .done(function(data) {
                 if (data.status == "ok")
                     this.loadStoryFromServer();
             }.bind(this));
     }),
     loadStoryFromServer: function() {
-        $.get("/stories/" + this.state.data.id)
+        $.get(baseUrl + "stories/" + this.state.data.id)
             .done(this.setData.bind(this));
     },
     componentWillMount: function() {
@@ -195,7 +195,7 @@ var StoryData = React.createClass({
 
 var StoryRow = React.createClass({
     handleAssigneeClick: React.autoBind(function(event) {
-        this.props.onAssigneeClicked({url: "/story/assignee",
+        this.props.onAssigneeClicked({url: baseUrl + "story/assignee",
                                       id: this.props.story.id,
                                       assignee: this.props.story.assignee,
                                       md5: this.props.story.md5});
@@ -240,21 +240,21 @@ var StoryRow = React.createClass({
         this.props.onTitleClicked(this.props.story.id);
     }),
     changeState: React.autoBind(function(event) {
-        $.post("/stories/state", {'id': this.props.story.id})
+        $.post(baseUrl + "stories/state", {'id': this.props.story.id})
             .done(function(data, textStatus, jqXHR) {
                 if (data.status == "ok")
                     this.setState({state: data.state});
             }.bind(this));
     }),
     moveUp: React.autoBind(function(event) {
-        $.post("/stories/up", {'id': this.props.story.id})
+        $.post(baseUrl + "stories/up", {'id': this.props.story.id})
             .done(function (data, textStatus, jqXHR) {
                 if (data.status == "ok")
                     this.props.onMoved(1);
             }.bind(this));
     }),
     moveDown: React.autoBind(function(event) {
-        $.post("/stories/down", {'id': this.props.story.id})
+        $.post(baseUrl + "stories/down", {'id': this.props.story.id})
             .done(function (data) {
                 if (data.status == "ok")
                     this.props.onMoved(-1);
@@ -416,7 +416,7 @@ var StoryPage = React.createClass({
         this.loadStoriesFromServer();
     }),
     handleStorySubmit: React.autoBind(function (story) {
-        $.post("/stories/new", story)
+        $.post(baseUrl + "stories/new", story)
             .done(function (data, textStatus, jqXHR) {
                 if (data.status == "ok")
                     this.loadStoriesFromServer();
@@ -426,7 +426,7 @@ var StoryPage = React.createClass({
             }.bind(this));
     }),
     handleStorySelected: React.autoBind(function (storyId) {
-        $.get('/stories/' + storyId)
+        $.get(baseUrl + 'stories/' + storyId)
             .done(function (data, textStatus, jqXHR) {
                 this.refs.data.setData(data);
             }.bind(this), 'json');
@@ -466,8 +466,8 @@ var StoryFilter = React.createClass({
     handleClick: React.autoBind(function(event) {
         this.setState({filter: (this.state.filter != 'all'
                                 ? 'all' : 'user')});
-        scrumli_page.setUrl((this.state.filter == "all"
-                             ? "/stories" : "/stories/mine"));
+        scrumli_page.setUrl(baseUrl + (this.state.filter == "all"
+                                       ? "stories" : "stories/mine"));
     }),
     render: function() {
         var classes = {all: ['icon-group', 'All'],
@@ -480,7 +480,7 @@ var StoryFilter = React.createClass({
     }
 });
 
-var scrumli_page = <StoryPage url="/stories" pollInterval={5000} />;
+var scrumli_page = <StoryPage url={baseUrl + "stories"} pollInterval={5000} />;
 
 React.renderComponent(
     scrumli_page,

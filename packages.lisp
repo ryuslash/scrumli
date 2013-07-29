@@ -14,25 +14,12 @@
 ;; You should have received a copy of the GNU Affero General Public License
 ;; along with scrumli.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:scrumli-config (:export #:*base-directory*))
-(defparameter scrumli-config:*base-directory*
-  (make-pathname :name nil :type nil :defaults *load-truename*))
+(defpackage #:scrumli
+  (:use :cl :ningle :drakma :clack.builder :clack.middleware.session
+        :clack.response :clack.request :clack.middleware.static
+        :postmodern :clack.middleware.postmodern :parenscript)
+  (:import-from :clack :clackup)
+  (:import-from :json :encode-json-to-string :decode-json)
+  (:export #:start-scrumli))
 
-(asdf:defsystem #:scrumli
-  :serial t
-  :description "Scrum with Lisp"
-  :author "Tom Willemse"
-  :license "AGPLv3"
-  :depends-on (:ningle
-               :postmodern
-               :cl-json
-               :drakma
-               :closure-template
-               :md5
-               :clack-middleware-postmodern
-               :parenscript)
-  :defsystem-depends-on (:closure-template)
-  :components ((:closure-template "templates/scrumli")
-               (:file "packages")
-               (:file "data")
-               (:file "scrumli")))
+(in-package #:scrumli)

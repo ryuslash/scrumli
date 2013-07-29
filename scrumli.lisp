@@ -16,7 +16,7 @@
 
 (in-package #:scrumli)
 
-(defvar *scrumli-host* "http://localhost:8080"
+(defvar *scrumli-host* "http://localhost:5000"
   "The host currently running Scrumli. Used by Mozilla Persona.")
 
 (defvar *scrumli-bootstrap-css-location*
@@ -44,7 +44,7 @@
   "The location of the JSX Transformer JS file.")
 
 (defun logged-in-p ()
-  (hunchentoot:session-value :username))
+  (gethash :username (getf (env *request*) :clack.session)))
 
 (defun page-title (title)
   (concatenate 'string title " | scrumli"))
@@ -52,127 +52,6 @@
 (defun md5-hash (str)
   (string-downcase (format nil "~{~2,'0x~}"
                            (coerce (md5:md5sum-string str) 'list))))
-
-(define-route main ("")
-  (if (logged-in-p)
-      (scrumli-templates:main
-       `(:title ,(page-title "Backlog")
-         :csss ,(list *scrumli-bootstrap-css-location*
-                      *scrumli-font-awesome-css-location*
-                      (genurl 'scrumli-css))
-         :jss ,(list *scrumli-jquery-js-location*
-                     *scrumli-bootstrap-js-location*
-                     *scrumli-react-js-location*
-                     *scrumli-jsxtransformer-js-location*)
-         :username ,(hunchentoot:session-value :username)
-         :usermd5 ,(md5-hash (hunchentoot:session-value :username))
-         :ulogout ,(genurl 'logout-page)
-         :umainjs ,(genurl 'main-js)))
-      (redirect 'login-page)))
-
-(defmacro serve-static (name relpath)
-  `(define-route ,name (,relpath :content-type "application/ecmascript")
-     (merge-pathnames ,relpath *static-directory*)))
-
-(serve-static main-js "js/main.js")
-(serve-static login-js "js/login.js")
-(serve-static scrumli-css "css/scrumli.css")
-
-(define-route stories-json ("stories" :content-type "text/json")
-  (if (logged-in-p)
-      (encode-json-to-string (get-all-stories))
-      403))
-
-(define-route my-stories-json ("stories/mine" :content-type "text/json")
-  (if (logged-in-p)
-      (encode-json-to-string (get-stories-for
-                              (hunchentoot:session-value :username)))
-      403))
-
-(defmacro with-post-parameters (parameters &body body)
-  `(let ,(mapcar (lambda (p)
-                   (list (intern (string-upcase p))
-                         `(hunchentoot:post-parameter ,p)))
-                 parameters)
-     ,@body))
-
-(define-route stories-new ("stories/new" :method :post
-                                         :content-type "text/json")
-  (if (logged-in-p)
-      (with-post-parameters ("role" "necessity" "headline" "content")
-        (post-story role necessity headline content
-                    (hunchentoot:session-value :username))
-        (encode-json-to-string '((status . "ok"))))
-      403))
-
-(define-route tasks-new ("stories/tasks/new" :method :post
-                                             :content-type "text/json")
-  (if (logged-in-p)
-      (with-post-parameters ("storyId" "description")
-        (post-task storyid description
-                   (hunchentoot:session-value :username))
-        (encode-json-to-string '((status . "ok"))))
-      403))
-
-(define-route stories-state ("stories/state" :method :post
-                                             :content-type "text/json")
-  (if (logged-in-p)
-      (let* ((id (hunchentoot:post-parameter "id"))
-             (current-state (story-get-state 'story id))
-             (next (ecase (intern current-state :scrumli)
-                     (todo "DOING")
-                     (doing "DONE")
-                     (done "TODO"))))
-        (story-set-state 'story id next)
-        (encode-json-to-string `((status . "ok") (state . ,next))))
-      403))
-
-(define-route task-state ("tasks/state" :method :post
-                                        :content-type "text/json")
-  (if (logged-in-p)
-      (let* ((id (hunchentoot:post-parameter "id"))
-             (current-state (story-get-state 'task id))
-             (next (ecase (intern current-state :scrumli)
-                     (todo "DOING")
-                     (doing "DONE")
-                     (done "TODO"))))
-        (story-set-state 'task id next)
-        (encode-json-to-string `((status . "ok") (state . ,next))))
-      403))
-
-(define-route stories-priority ("stories/:dir" :method :post
-                                               :content-type "text/json")
-  (if (logged-in-p)
-      (let* ((id (hunchentoot:post-parameter "id")))
-        (story-change-priority
-         'story id (intern (string-upcase dir) :keyword))
-        (encode-json-to-string '((status . "ok"))))
-      403))
-
-(define-route task-priority ("tasks/:dir" :method :post
-                                          :content-type "text/json")
-  (if (logged-in-p)
-      (let* ((id (hunchentoot:post-parameter "id")))
-        (story-change-priority
-         'task id (intern (string-upcase dir) :keyword))
-        (encode-json-to-string '((status . "ok"))))
-      403))
-
-(define-route login-page ("login")
-  (if (not (logged-in-p))
-      (scrumli-templates:login
-       `(:title ,(page-title "Login")
-         :csss ,(list *scrumli-bootstrap-css-location*
-                      *scrumli-font-awesome-css-location*)
-         :jss ,(list *scrumli-bootstrap-js-location*
-                     "https://login.persona.org/include.js"
-                     (genurl 'login-js))))
-      (redirect 'main)))
-
-(define-route logout-page ("logout")
-  (if (logged-in-p)
-      (setf (hunchentoot:session-value :username) nil))
-  (redirect 'login-page))
 
 (defun verify-credentials (audience assertion)
   (let ((response
@@ -184,37 +63,207 @@
                        :want-stream t)))
     (decode-json response)))
 
-(define-route login-page/post ("login" :method :post)
-  (let ((result (verify-credentials
-                 *scrumli-host*
-                 (hunchentoot:post-parameter "assertion"))))
-    (if (equal (cdr (assoc :status result)) "okay")
-        (progn
-          (hunchentoot:start-session)
-          (setf (hunchentoot:session-value :username)
-                (cdr (assoc :email result)))
-          (redirect 'main))
-        403)))
+(defclass scrumli-app (<app>) ())
 
-(define-route scrumli-story ("stories/:id" :content-type "json")
-  (if (logged-in-p)
-      (encode-json-to-string (get-story id))
-      403))
+(defvar *app* (make-instance 'scrumli-app))
 
-(define-route scrumli-story-set-assignee ("story/assignee"
-                                          :content-type "json"
-                                          :method :post)
-  (if (logged-in-p)
-      (with-post-parameters ("id" "assignee")
-        (set-assignee 'story id assignee)
-        (encode-json-to-string '((status . "ok"))))
-      403))
+(defun make-tpl-parameters (&rest args)
+  (append (list :prefix (script-name *request*)) args))
 
-(define-route scrumli-task-set-assignee ("tasks/assignee"
-                                         :content-type "json"
-                                         :method :post)
-  (if (logged-in-p)
-      (with-post-parameters ("id" "assignee")
-        (set-assignee 'task id assignee)
-        (encode-json-to-string '((status . "ok"))))
-      403))
+(setf (route *app* "/")
+      (lambda (params)
+        (declare (ignore params))
+        (if (logged-in-p)
+            (scrumli-templates:main
+             (make-tpl-parameters
+              :title (page-title "Backlog")
+              :csss (list *scrumli-bootstrap-css-location*
+                          *scrumli-font-awesome-css-location*
+                          (concatenate 'string (script-name *request*) "static/css/scrumli.css"))
+              :jss (list *scrumli-jquery-js-location*
+                         *scrumli-bootstrap-js-location*
+                         *scrumli-react-js-location*
+                         *scrumli-jsxtransformer-js-location*
+                         (concatenate 'string (script-name *request*) "js/bridge.js"))
+              :username (gethash :username (getf (env *request*) :clack.session))
+              :usermd5 (md5-hash (gethash :username (getf (env *request*) :clack.session)))
+              :ulogout (concatenate 'string (script-name *request*) "logout")
+              :umainjs (concatenate 'string (script-name *request*) "static/js/main.js")))
+            (redirect *response*
+                      (concatenate 'string (script-name *request*)
+                                   "login")))))
+
+(setf (route *app* "/login")
+      (lambda (params)
+        (declare (ignore params))
+        (if (not (logged-in-p))
+            (scrumli-templates:login
+             (make-tpl-parameters
+              :title (page-title "Login")
+              :csss (list *scrumli-bootstrap-css-location*
+                          *scrumli-font-awesome-css-location*)
+              :jss (list *scrumli-bootstrap-js-location*
+                         "https://login.persona.org/include.js"
+                         (concatenate 'string (script-name *request*)
+                                      "js/bridge.js")
+                         (concatenate 'string (script-name *request*)
+                                      "static/js/login.js"))))
+            (redirect *response* (if (equal (script-name *request*) "")
+                                     "/" (script-name *request*))))))
+
+(setf (route *app* "/login" :method :post)
+      (lambda (params)
+        (let ((result (verify-credentials
+                       *scrumli-host* (getf params :|assertion|))))
+          (if (equal (cdr (assoc :status result)) "okay")
+              (progn
+                (setf (gethash :username
+                               (getf (env *request*) :clack.session))
+                      (cdr (assoc :email result)))
+                (redirect *response*
+                          (if (equal (script-name *request*) "")
+                              "/" (script-name *request*))))
+              '(403)))))
+
+(setf (route *app* "/logout")
+      (lambda (params)
+        (declare (ignore params))
+        (if (logged-in-p)
+            (setf (gethash :username
+                           (getf (env *request*) :clack.session)) nil))
+        (redirect *response* (concatenate 'string (script-name *request*)
+                                          "login"))))
+
+(setf (route *app* "/stories")
+      (lambda (params)
+        (declare (ignore params))
+        (if (logged-in-p)
+            (list 200 '(:content-type "text/json")
+                  (encode-json-to-string (get-all-stories)))
+            '(403))))
+
+(setf (route *app* "/stories/mine")
+      (lambda (params)
+        (declare (ignore params))
+        (if (logged-in-p)
+            (list 200 '(:content-type "text/json")
+                  (encode-json-to-string
+                   (get-stories-for
+                    (gethash :username (getf (env *request*) :clack.session)))))
+            '(403))))
+
+(setf (route *app* "/stories/new" :method :post)
+      (lambda (params)
+        (if (logged-in-p)
+            (let ((role (getf params :|role|))
+                  (necessity (getf params :|necessity|))
+                  (headline (getf params :|headline|))
+                  (content (getf params :|content|)))
+              (post-story role necessity headline content
+                          (gethash :username (getf (env *request*) :clack.session)))
+              (list 200 '(:content-type "text/json")
+                    (encode-json-to-string '((status . "ok")))))
+            '(403))))
+
+(setf (route *app* "/stories/tasks/new" :method :post)
+      (lambda (params)
+        (if (logged-in-p)
+            (let ((story-id (getf params :|storyId|))
+                  (description (getf params :|description|)))
+              (post-task story-id description
+                         (gethash :username (getf (env *request*) :clack.session)))
+              (list 200 '(:content-type "text/json")
+                    (encode-json-to-string '((status . "ok")))))
+            '(403))))
+
+(setf (route *app* "/stories/state" :method :post)
+      (lambda (params)
+        (if (logged-in-p)
+            (let* ((id (getf params :|id|))
+                   (current-state (story-get-state 'story id))
+                   (next (ecase (intern current-state :scrumli)
+                           (todo "DOING")
+                           (doing "DONE")
+                           (done "TODO"))))
+              (story-set-state 'story id next)
+              (list 200 '(:content-type "text/json")
+                    (encode-json-to-string `((status . "ok")
+                                             (state . ,next)))))
+            '(403))))
+
+(setf (route *app* "/tasks/state" :method :post)
+      (lambda (params)
+        (if (logged-in-p)
+            (let* ((id (getf params :|id|))
+                   (current-state (story-get-state 'task id))
+                   (next (ecase (intern current-state :scrumli)
+                           (todo "DOING")
+                           (doing "DONE")
+                           (done "TODO"))))
+              (story-set-state 'task id next)
+              (list 200 '(:content-type "text/json")
+                    (encode-json-to-string `((status . "ok")
+                                             (state . ,next)))))
+            '(403))))
+
+(setf (route *app* "/stories/:dir" :method :post)
+      (lambda (params)
+        (if (logged-in-p)
+            (let ((id (getf params :|id|))
+                  (dir (getf params :dir)))
+              (story-change-priority
+               'story id (intern (string-upcase dir) :keyword))
+              (list 200 '(:content-type "text/json")
+                    (encode-json-to-string '((status . "ok")))))
+            '(403))))
+
+(setf (route *app* "/tasks/:dir" :method :post)
+      (lambda (params)
+        (if (logged-in-p)
+            (let ((id (getf params :|id|)))
+              (story-change-priority
+               'task id (intern (string-upcase (getf params :dir)) :keyword))
+              (list 200 '(:content-type "text/json")
+                    (encode-json-to-string '((status . "ok")))))
+            '(403))))
+
+(setf (route *app* "/stories/:id")
+      (lambda (params)
+        (if (logged-in-p)
+            (list 200 '(:content-type "text/json")
+                  (encode-json-to-string (get-story (getf params :id))))
+            '(403))))
+
+(setf (route *app* "/story/assignee" :method :post)
+      (lambda (params)
+        (if (logged-in-p)
+            (progn
+              (set-assignee 'story (getf params :|id|) (getf params :|assignee|))
+              (list 200 '(:content-type "text/json")
+                    (encode-json-to-string '((status . "ok")))))
+            '(403))))
+
+(setf (route *app* "/task/assignee" :method :post)
+      (lambda (params)
+        (if (logged-in-p)
+            (progn
+              (set-assignee 'task (getf params :|id|) (getf params :|assignee|))
+              (list 200 '(:content-type "text/json")
+                    (encode-json-to-string '((status . "ok")))))
+            '(403))))
+
+(setf (route *app* "/js/bridge.js")
+      (lambda (params)
+        (declare (ignore params))
+        (list 200 '(:content-type "text/javascript")
+              (ps (var base-url (lisp (if (equal (script-name *request*) "")
+                                          "/" (script-name *request*))))))))
+
+(defun get-app ()
+  (builder
+   (<clack-middleware-static> :path "/static/" :root "static/")
+   (<clack-middleware-session>
+    :state (make-instance 'clack.session.state.cookie:<clack-session-state-cookie>))
+   (<clack-middleware-postmodern>
+    :database "scrumli" :user "slash" :password nil :host "localhost")
+   *app*))
