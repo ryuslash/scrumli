@@ -123,38 +123,44 @@ var StoryTaskForm = React.createClass({
     handleSubmit: React.autoBind(function() {
         var text = this.refs.text.getDOMNode().value.trim();
 
-        this.props.onTaskSubmit({description: text});
+        this.props.onTaskSubmit({description: text,
+                                 storyId: this.state.storyId});
 
+        $(".taskModal").modal('hide');
         this.refs.text.getDOMNode().value = '';
 
         return false;
     }),
+    getInitialState: function() {
+        return {storyId: null};
+    },
+    setStoryId: React.autoBind(function(id) {
+        this.setState({storyId: id});
+    }),
     render: function() {
         return (
-            <form onSubmit={this.handleSubmit}>
-              <fieldset>
-                <legend>New task</legend>
-                <div class="input-append">
-                  <input type="text" ref="text" class="input-medium" />
-                  <button type="submit" class="btn btn-primary">
-                    Send
-                  </button>
-                </div>
-              </fieldset>
-            </form>
+            <div class="taskModal modal fade hide">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                  &times;
+                </button>
+                <h3 id="taskModalLabel">New task</h3>
+              </div>
+              <div class="modal-body">
+                <input type="text" ref="text" class="input-medium" />
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary"
+                        onClick={this.handleSubmit}>
+                  Send
+                </button>
+              </div>
+            </div>
         );
     }
 });
 
 var StoryData = React.createClass({
-    handleTaskSubmit: React.autoBind(function (task) {
-        task.storyId = this.state.data.id;
-        $.post(baseUrl + "stories/tasks/new", task)
-            .done(function(data) {
-                if (data.status == "ok")
-                    this.loadStoryFromServer();
-            }.bind(this));
-    }),
     loadStoryFromServer: function() {
         $.get(baseUrl + "stories/" + this.state.data.id)
             .done(this.setData.bind(this));
@@ -178,14 +184,19 @@ var StoryData = React.createClass({
     render: function() {
         if (this.state.data) {
             return (<div>
-                      <h1>{this.state.data.title}</h1>
+                      <h1>
+                        <button data-target=".taskModal" role="button"
+                                data-toggle="modal" class="nothing">
+                          <i class="icon-plus-sign icon-2x"></i>
+                        </button>
+                        {this.state.data.title}
+                      </h1>
                       <div class="well normalText">
                         {this.state.data.content}
                       </div>
                       <StoryTaskTable tasks={this.state.data.tasks || []}
                                       onTaskMoved={this.handleTaskMoved}
                                       onAssigneeClicked={this.props.onAssigneeClicked} />
-                      <StoryTaskForm onTaskSubmit={this.handleTaskSubmit} />
                     </div>);
         }
 
@@ -299,11 +310,11 @@ var AssignmentForm = React.createClass({
     render: function() {
         return (
             <div class="assignModal modal fade hide">
-                <div class="modal-header">
-                  <button type="button" class="close"
-                          data-dismiss="modal">
-                    &times;
-                  </button>
+              <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal">
+                  &times;
+                </button>
                 <h3 id="assignModalLabel">Assign</h3>
               </div>
               <div class="modal-body">
@@ -429,6 +440,7 @@ var StoryPage = React.createClass({
         $.get(baseUrl + 'stories/' + storyId)
             .done(function (data, textStatus, jqXHR) {
                 this.refs.data.setData(data);
+                this.refs.taskForm.setStoryId(data.id);
             }.bind(this), 'json');
     }),
     handleAssigneeClicked: React.autoBind(function (info) {
@@ -437,6 +449,13 @@ var StoryPage = React.createClass({
         form.setInfo(info);
 
         $(".assignModal").modal();
+    }),
+    handleTaskSubmit: React.autoBind(function (task) {
+        $.post(baseUrl + "stories/tasks/new", task)
+            .done(function(data) {
+                if (data.status == "ok")
+                    this.refs.data.loadStoryFromServer();
+            }.bind(this));
     }),
     render: function() {
         return (
@@ -453,6 +472,8 @@ var StoryPage = React.createClass({
                 <StoryData ref="data"
                            pollInterval={this.props.pollInterval}
                            onAssigneeClicked={this.handleAssigneeClicked} />
+                <StoryTaskForm onTaskSubmit={this.handleTaskSubmit}
+                               ref="taskForm"/>
               </div>
             </div>
         );
