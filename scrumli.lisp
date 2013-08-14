@@ -20,27 +20,27 @@
   "The host currently running Scrumli. Used by Mozilla Persona.")
 
 (defvar *scrumli-bootstrap-css-location*
-  "http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css"
+  "//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css"
   "The location of the twitter bootstrap CSS file.")
 
 (defvar *scrumli-bootstrap-js-location*
-  "http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"
+  "//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"
   "The location of the twitter bootstrap JS file.")
 
 (defvar *scrumli-font-awesome-css-location*
-  "http://netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.min.css"
+  "//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.min.css"
   "The location of the font awesome CSS file.")
 
 (defvar *scrumli-jquery-js-location*
-  "http://code.jquery.com/jquery-2.0.0.min.js"
+  "//code.jquery.com/jquery-2.0.0.min.js"
   "The location of the jQuery JS file.")
 
 (defvar *scrumli-react-js-location*
-  "http://cdnjs.cloudflare.com/ajax/libs/react/0.3.2/react.min.js"
+  "//cdnjs.cloudflare.com/ajax/libs/react/0.3.2/react.min.js"
   "The location of the React JS file.")
 
 (defvar *scrumli-jsxtransformer-js-location*
-  "http://cdnjs.cloudflare.com/ajax/libs/react/0.3.2/JSXTransformer.js"
+  "//cdnjs.cloudflare.com/ajax/libs/react/0.3.2/JSXTransformer.js"
   "The location of the JSX Transformer JS file.")
 
 (defun logged-in-p ()
