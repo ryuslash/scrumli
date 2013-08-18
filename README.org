@@ -12,10 +12,10 @@ us (eventually) scrum.
   - ... uses Mozilla Persona for authentication and ~drakma~ to
     communicate with Mozilla Persona.
   - ... uses Gravatar for avatars and ~md5~ to get the Gravatar avatars
-  - ... uses the ~restas~ web framework.
+  - ... uses the ~ningle~ web framework.
   - ... uses PostgreSQL as a database and ~postmodern~ to talk to
     the database.
-  - ... uses ~cl-json~ to generate JSON
+  - ... uses ~cl-json~ to generate JSON.
   - ... uses ~closure-template~ for the few templates it has.
   - ... uses bootstrap for layout.
   - ... uses jQuery for some of the JavaScript functionality.
@@ -31,7 +31,7 @@ us (eventually) scrum.
 
   - ~drakma~
   - ~md5~
-  - ~restas~
+  - ~ningle~
   - ~postmodern~
   - ~cl-json~
   - ~closure-template~
