@@ -98,29 +98,36 @@
 (defun story-set-state (type id state)
   (execute (:update type :set 'state state :where (:= 'id id))))
 
-(defun story-change-priority (type id dir)
-  (let* ((current-priority (query (:select 'priority :from type
+(defun story-change-priority (id dir)
+  (let* ((current-priority (query (:select 'priority :from 'story
                                            :where (:= 'id id))
                                   :single))
          (next-priority (funcall (ecase dir (:up #'-) (:down #'+))
                                  current-priority 1))
          (max-priority
-          (case type
-            ('story (query (:select (:max 'priority) :from type)
-                           :single))
-            ('task
-             (query (:select
-                     (:max 'priority) :from type
-                     :where (:= 'story-id
-                                (:select 'story-id
-                                         :from 'task
-                                         :where (:= 'id id))))
-                    :single)))))
-    (execute (:update type :set 'priority current-priority
+          (query (:select (:max 'priority) :from 'story)
+                 :single)))
+    (execute (:update 'story :set 'priority current-priority
                       :where (:= 'priority next-priority)))
-    (execute (:update type :set
+    (execute (:update 'story :set
                       'priority (max 1 (min next-priority max-priority))
                       :where (:= 'id id)))))
+
+(defun task-change-priority (id dir)
+  (destructuring-bind (priority story-id)
+      (query (:select 'priority 'story-id :from 'task
+                      :where (:= 'id id)) :list)
+   (let* ((next-priority
+           (funcall (ecase dir (:up #'-) (:down #'+)) priority 1))
+          (max-priority
+           (query (:select (:max 'priority) :from 'task
+                           :where (:= 'story-id story-id)) :single)))
+     (execute (:update 'task :set 'priority priority
+                       :where (:and (:= 'priority next-priority)
+                                    (:= 'story-id story-id))))
+     (execute (:update 'task :set
+                       'priority (max 1 (min next-priority max-priority))
+                       :where (:= 'id id))))))
 
 (defun set-assignee (type id assignee)
   (execute (:update type :set 'assignee assignee

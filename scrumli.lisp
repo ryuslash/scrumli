@@ -208,17 +208,16 @@
   (if (logged-in-p)
       (let ((id (getf params :|id|))
             (dir (getf params :dir)))
-        (story-change-priority
-         'story id (intern (string-upcase dir) :keyword))
+        (story-change-priority id (intern (string-upcase dir) :keyword))
         (list 200 '(:content-type "text/json")
               (encode-json-to-string '((status . "ok")))))
       '(403)))
 
 (defun task-move-json/post (params)
   (if (logged-in-p)
-      (let ((id (getf params :|id|)))
-        (story-change-priority
-         'task id (intern (string-upcase (getf params :dir)) :keyword))
+      (let ((id (getf params :|id|))
+            (dir (getf params :dir)))
+        (task-change-priority id (intern (string-upcase dir) :keyword))
         (list 200 '(:content-type "text/json")
               (encode-json-to-string '((status . "ok")))))
       '(403)))
