@@ -261,7 +261,9 @@
 
 (defun get-app ()
   (builder
-   (<clack-middleware-static> :path "/static/" :root "static/")
+   (<clack-middleware-static>
+    :path "/static/"
+    :root (merge-pathnames #P"static/" scrumli-config:*base-directory*))
    (<clack-middleware-session>
     :state (make-instance 'clack.session.state.cookie:<clack-session-state-cookie>))
    (<clack-middleware-postmodern>
