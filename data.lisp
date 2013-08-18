@@ -85,7 +85,9 @@
               'task :description description
               :priority (+ 1 (query (:select
                                      (:coalesce (:max 'priority) 0)
-                                     :from 'task) :single))
+                                     :from 'task
+                                     :where (:= 'story-id story-id))
+                                    :single))
               :reporter reporter :story-id (parse-integer story-id)
               :assignee "")))
     (save-dao obj)))
@@ -102,8 +104,18 @@
                                   :single))
          (next-priority (funcall (ecase dir (:up #'-) (:down #'+))
                                  current-priority 1))
-         (max-priority (query (:select (:max 'priority) :from type)
-                              :single)))
+         (max-priority
+          (case type
+            ('story (query (:select (:max 'priority) :from type)
+                           :single))
+            ('task
+             (query (:select
+                     (:max 'priority) :from type
+                     :where (:= 'story-id
+                                (:select 'story-id
+                                         :from 'task
+                                         :where (:= 'id id))))
+                    :single)))))
     (execute (:update type :set 'priority current-priority
                       :where (:= 'priority next-priority)))
     (execute (:update type :set
